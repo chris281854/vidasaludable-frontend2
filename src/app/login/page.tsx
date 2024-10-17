@@ -35,7 +35,8 @@ const LoginPage = () => {
       return;
     }
 
-    router.push("/homepage");
+    //router.push("/homepage");
+    router.push("/dashboard");
   };
 
   return (
