@@ -1,5 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+interface ExtendedUser extends User {
+  role: string;
+  token: string; // Asegúrate de incluir el token aquí si lo necesitas
+}
 
 const handler = NextAuth({
   providers: [
@@ -7,7 +12,7 @@ const handler = NextAuth({
       name: "Credentials",
       credentials: {
         name: { label: "name", type: "input", placeholder: "Ingrese su usuario" },
-        password: { label: "Password", type: "password" , placeholder: "Ingrese su contraseña" },
+        password: { label: "Password", type: "password", placeholder: "Ingrese su contraseña" },
       },
       async authorize(credentials) {
         const res = await fetch(
@@ -21,24 +26,38 @@ const handler = NextAuth({
             headers: { "Content-Type": "application/json" },
           }
         );
+
         const user = await res.json();
 
-        if (user.error) throw user;
+        if (!res.ok || user.error) {
+          throw new Error(user.error || "Error en la autenticación");
+        }
 
-        return user;
+        // Asegúrate de retornar el token y otros campos necesarios
+        return {
+          name: user.name,
+          role: user.role,
+          token: user.token, // Asumiendo que tu API devuelve este token
+        } as ExtendedUser;
       },
     }),
   ],
 
   callbacks: {
-    //   async jwt({ token, user }) {
-    //   return { ...token, ...user };
-    // },
-    // async session({ session, token }) {
-    //   session.user = token as any;
-    //   return session;
-    // },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as ExtendedUser).role;
+        token.accessToken = (user as ExtendedUser).token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.role = token.role as string;
+      session.user.token = token.accessToken as string; // Pasa el token a la sesión
+      return session;
+    },
   },
+
   pages: {
     signIn: "/login",
   },

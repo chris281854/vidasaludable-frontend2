@@ -1,5 +1,6 @@
 "use client";
 import { useSession } from "next-auth/react";
+import router from "next/router";
 
 const Dashboard = () => {
   const { data: session, status } = useSession();
@@ -22,6 +23,11 @@ const Dashboard = () => {
     console.log(data);
   };
 
+  const handleRedirect = () => {
+    router.push('/paciente'); // Redirige a la ruta /paciente
+  };
+
+
   return (
     <div>
       <h1>Dashboard</h1>
@@ -30,6 +36,13 @@ const Dashboard = () => {
         className="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 border-b-4 border-green-700 hover:border-green-500 rounded"
       >
         Listar Pacientes
+      </button>
+
+      <button
+        onClick={handleRedirect}
+        className="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 border-b-4 border-green-700 hover:border-green-500 rounded"
+      >
+       Pacientes
       </button>
       <pre>
         <code>{JSON.stringify(session, null, 2)}</code>

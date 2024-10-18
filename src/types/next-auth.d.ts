@@ -5,6 +5,8 @@ declare module "next-auth" {
     user: {
       name: string;
       token: string;
+      role: string;
+      icon: Icon;
     };
   }
 }
