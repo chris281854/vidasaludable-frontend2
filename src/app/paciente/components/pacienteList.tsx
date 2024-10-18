@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import SkeletonLoader from './SkeletonLoader'; // Asegúrate de que la ruta sea correcta
 
 interface DetailPaciente {
   objetivo: string; // Objetivo
@@ -23,7 +24,6 @@ const PatientList: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -84,60 +84,55 @@ const PatientList: React.FC = () => {
     }
   }, [session, status]);
 
-  if (status === 'loading') return <div>Cargando sesión...</div>;
-  if (!session) return <div>No autorizado. Por favor, inicia sesión.</div>;
-  if (loading) return <div>Cargando pacientes...</div>;
+//   if (status === 'loading') return <div>Cargando sesión...</div>;
+//   if (!session) return <div>No autorizado. Por favor, inicia sesión.</div>;
+  if (loading) return (
+    <div className="container mx-auto grid grid-cols-12 mt-10">
+      <div className="col-span-10 bg-white rounded-lg shadow-lg p-4 overflow-auto">
+        <h2 className="text-2xl text-black font-extrabold mb-4 text-center">Pacientes Registrados</h2>
+        <SkeletonLoader /> {/* Mostrar el esqueleto de carga en el espacio de la tabla */}
+      </div>
+    </div>
+  ); 
   if (error) return <div>Error: {error}</div>;
-
-  const currentYear = new Date().getFullYear();
-
-  const sortedPatients = [...patients].sort((a, b) => {
-    const comparison = a.apellido.localeCompare(b.apellido);
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
 
   return (
     <div className="container mx-auto grid grid-cols-12 mt-10">
       <div className="col-span-10 bg-white rounded-lg shadow-lg p-4 overflow-auto">
         <h2 className="text-2xl text-black font-extrabold mb-4 text-center">Pacientes Registrados</h2>
-        {sortedPatients.length === 0 ? (
+        {patients.length === 0 ? (
           <div className="text-center text-gray-500">No se encontraron pacientes.</div>
         ) : (
-          <>
-            <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300">
-              <thead className='text-slate-100'>
-                <tr className="text-center bg-[#25aa80] ">
-                  <th className="py-4 px-4 border-b border-gray-300 cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-                    RUP
-                    <span className={`ml-2 ${sortOrder === 'asc' ? '⬆️' : '⬇️'}`} />
-                  </th>
-                  <th className="py-4 text-blue-50px-4 border-b border-gray-300">Nombre</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Apellido</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Sexo</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Ciudad</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Edad</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Motivo de Consulta</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Objetivos</th>
-                  <th className="py-4 px-4 border-b border-gray-300">Fecha de Registro</th>
+          <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300">
+            <thead className='text-slate-100'>
+              <tr className="text-center bg-[#25aa80] ">
+                <th className="py-4 px-4 border-b border-gray-300">RUP</th>
+                <th className="py-4 px-4 border-b border-gray-300">Nombre</th>
+                <th className="py-4 px-4 border-b border-gray-300">Apellido</th>
+                <th className="py-4 px-4 border-b border-gray-300">Sexo</th>
+                <th className="py-4 px-4 border-b border-gray-300">Ciudad</th>
+                <th className="py-4 px-4 border-b border-gray-300">Edad</th>
+                <th className="py-4 px-4 border-b border-gray-300">Motivo de Consulta</th>
+                <th className="py-4 px-4 border-b border-gray-300">Objetivos</th>
+                <th className="py-4 px-4 border-b border-gray-300">Fecha de Registro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {patients.map((patient) => (
+                <tr key={patient.rup} className="hover:bg-gray-200 text-center transition duration-200">
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.rup}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.nombre}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.apellido}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.sexo}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.ciudad}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{new Date().getFullYear() - new Date(patient.nacimiento).getFullYear()}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.motivo}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.objetivo}</td>
+                  <td className="py-4 px-4 border-b border-gray-300">{patient.registro}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {sortedPatients.map((patient) => (
-                  <tr key={patient.rup} className="hover:bg-gray-200 text-center transition duration-200">
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.rup}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.nombre}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.apellido}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.sexo}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.ciudad}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{currentYear - new Date(patient.nacimiento).getFullYear()}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.motivo}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.objetivo}</td>
-                    <td className="py-4 px-4 border-b border-gray-300">{patient.registro}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
