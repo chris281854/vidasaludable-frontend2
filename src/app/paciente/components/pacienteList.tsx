@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import SkeletonLoader from './SkeletonLoader'; // Asegúrate de que la ruta sea correcta
+import SkeletonLoader from './SkeletonLoader';
 
 interface DetailPaciente {
-  objetivo: string; // Objetivo
-  motivo: string; // Motivo
+  objetivo: string;
+  motivo: string;
 }
 
 interface Patient {
@@ -19,7 +19,11 @@ interface Patient {
   motivo: string;
 }
 
-const PatientList: React.FC = () => {
+interface PatientListProps {
+  filterText: string;
+}
+
+const PatientList: React.FC<PatientListProps> = ({ filterText }) => {
   const { data: session, status } = useSession();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +53,6 @@ const PatientList: React.FC = () => {
         }
 
         const data = await response.json();
-        console.log('Datos obtenidos del backend:', data);
 
         if (Array.isArray(data)) {
           const formattedData = data.map((item) => {
@@ -84,26 +87,23 @@ const PatientList: React.FC = () => {
     }
   }, [session, status]);
 
-//   if (status === 'loading') return <div>Cargando sesión...</div>;
-//   if (!session) return <div>No autorizado. Por favor, inicia sesión.</div>;
-  if (loading) return (
-    <div className="container mx-auto grid grid-cols-12 mt-10">
-      <div className="col-span-10 bg-white rounded-lg shadow-lg p-4 overflow-auto">
-        <h2 className="text-2xl text-black font-extrabold mb-4 text-center">Pacientes Registrados</h2>
-        <SkeletonLoader /> {/* Mostrar el esqueleto de carga en el espacio de la tabla */}
-      </div>
-    </div>
-  ); 
+  const filteredPatients = patients.filter((patient) =>
+    Object.values(patient).some((value) =>
+      value.toString().toLowerCase().includes(filterText.toLowerCase())
+    )
+  );
+
+  if (loading) return <SkeletonLoader />;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="container mx-auto grid grid-cols-12 mt-10">
       <div className="col-span-10 bg-white rounded-lg shadow-lg p-4 overflow-auto">
         <h2 className="text-2xl text-black font-extrabold mb-4 text-center">Pacientes Registrados</h2>
-        {patients.length === 0 ? (
-          <div className="text-center text-gray-500">No se encontraron pacientes.</div>
+        {filteredPatients.length === 0 ? (
+          <div className="text-center text-gray-500 mt-4">No se encontraron pacientes.</div>
         ) : (
-          <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300">
+          <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300 mt-4">
             <thead className='text-slate-100'>
               <tr className="text-center bg-[#25aa80] ">
                 <th className="py-4 px-4 border-b border-gray-300">RUP</th>
@@ -118,7 +118,7 @@ const PatientList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {patients.map((patient) => (
+              {filteredPatients.map((patient) => (
                 <tr key={patient.rup} className="hover:bg-gray-200 text-center transition duration-200">
                   <td className="py-4 px-4 border-b border-gray-300">{patient.rup}</td>
                   <td className="py-4 px-4 border-b border-gray-300">{patient.nombre}</td>

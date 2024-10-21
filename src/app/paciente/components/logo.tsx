@@ -13,7 +13,7 @@ const Logo: React.FC<LogoProps> = ({ expanded }) => {
       }`}
     >
       <img
-        src="/logo.png"
+        src="/apple.png"
         alt="Logo"
         className="w-full h-full object-contain"
       />

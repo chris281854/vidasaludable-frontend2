@@ -1,34 +1,77 @@
-// pages/index.tsx
 'use client';
 
-import HeaderUser from "../../app/paciente/components/headeruser";
-import Sidebar from "../../app/paciente/components/sidebar";
-import PatientList from "../../app/paciente/components/pacienteList";
-import ActionButton from "../../app/paciente/components/ActionButton";
-import FilterInput from "../../app/paciente/components/FilterButon";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import HeaderUser from "./components/headeruser";
+import Sidebar from "./components/sidebar";
+import PatientList from "./components/pacienteList";
+import RightBar from "./components/RightBar";
+import { Button } from "@mui/material";
+import FilterInput from "./components/FilterButon";
+
+interface SidebarProps {
+    initialExpanded?: boolean;
+    initialWidth?: string;
+    expandedWidth?: string;
+    onExpand?: (expanded: boolean) => void;
+}
 
 const PacienteDashboard: React.FC = () => {
-    const [isExpanded, setIsExpanded] = useState(true);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [filterText, setFilterText] = useState('');
+
+    const handleFilterChange = useCallback((value: string) => {
+        setFilterText(value);
+    }, []);
+
+    const handleFilterSubmit = useCallback(() => {
+        console.log("Filtro aplicado:", filterText);
+    }, [filterText]);
 
     return (
-        <div className="w-screen h-screen relative bg-white border border-black">
-            <Sidebar expanded={isExpanded} />
-            <HeaderUser />
-            <div className="absolute top-20 left-40">
-                <h1 className="text-3xl text-black font-semibold mb-4">Consulta general de pacientes</h1>
-
-                {/* Espacio para los botones debajo de las líneas verdes */}
-                <div className="mt-16"> {/* Aumenta el margen superior para bajar los botones */}
-                    <div className="flex gap-4 mb-4">
-                        <ActionButton label="Agregar" />
-                        <ActionButton label="Actualizar" />
-                         
+        <div className="flex h-screen bg-white">
+            <Sidebar 
+                initialExpanded={isExpanded}
+                initialWidth="w-16"
+                expandedWidth="w-50"
+                onExpand={setIsExpanded}
+            />
+            <div className="flex-grow overflow-hidden">
+                <HeaderUser title="Consulta General de Paciente" />
+                
+                <div className="p-8 pl-24 mt-48"> {/* Aumentado el margen superior a mt-48 */}
+                    <div className="flex flex-col gap-8 mb-10"> {/* Aumentado el gap y el margen inferior */}
+                        <div className="flex gap-4">
+                            <Button variant="contained" style={{ backgroundColor: '#25aa80' }}>
+                                Agregar
+                            </Button>
+                            <Button variant="contained" style={{ backgroundColor: '#25aa80' }}>
+                                Actualizar
+                            </Button>
+                        </div>
+                        
+                        <FilterInput
+                            filterText={filterText}
+                            onFilterChange={handleFilterChange}
+                            onFilterSubmit={handleFilterSubmit}
+                        />
                     </div>
-                    <FilterInput/>
+                    
+                    <div className="flex gap-8">
+                        <div className="w-2/3 pr-4">
+                            <PatientList filterText={filterText} />
+                        </div>
+                        <div className="w-1/4">
+                            <div className="sticky top-24">
+                                <h2 className="text-black text-2xl font-semibold font-['Inter'] mb-4">
+                                    Últimos pacientes registrados
+                                </h2>
+                                <div className="top-24">
+                                    <RightBar />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <PatientList />
             </div>
         </div>
     );

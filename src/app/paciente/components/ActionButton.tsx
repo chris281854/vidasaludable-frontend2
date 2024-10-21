@@ -1,13 +1,20 @@
-// components/ActionButton.tsx
+import React from 'react';
+
 interface ActionButtonProps {
-    label: string;
-  }
-  
-  const ActionButton: React.FC<ActionButtonProps> = ({ label }) => (
-    <button className="bg-black text-white px-6 py-2 rounded-full font-bold text-lg">
+  label: string;
+  onClick: () => void;
+  // Otras props que pueda necesitar
+}
+
+const ActionButton: React.FC<ActionButtonProps> = ({ label, onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="bg-[#25aa80] text-white px-4 py-2 rounded-full hover:bg-[#1e8f6e]"
+    >
       {label}
     </button>
   );
-  
-  export default ActionButton;
-  
+};
+
+export default ActionButton;

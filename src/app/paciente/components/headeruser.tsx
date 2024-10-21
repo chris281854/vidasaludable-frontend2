@@ -2,7 +2,11 @@
 import React from 'react';
 import { useSession } from 'next-auth/react';
 
-const HeaderUser: React.FC = () => {
+interface HeaderUserProps {
+  title?: string; // Hacemos el título opcional
+}
+
+const HeaderUser: React.FC<HeaderUserProps> = ({ title }) => {
   const { data: session } = useSession();
   const username = session?.user.name || 'Invitado';
   const role = session?.user.role || 'Usuario';
@@ -11,12 +15,12 @@ const HeaderUser: React.FC = () => {
   const dateTime = new Date().toLocaleString();
 
   return (
-    <div>
-      <div className="absolute top-5 right-10 flex items-center gap-4"> {/* Alineación horizontal */}
+    <div className="relative mb-20"> {/* Aumentado el margen inferior para acomodar el título */}
+      <div className="absolute top-5 right-10 flex items-center gap-4">
         {/* Imagen de perfil con borde */}
         <div className="w-16 h-16 rounded-full border-4 border-green-500 overflow-hidden">
           <img
-            src={session?.user.icon || '/c.png'} // Cambia esto a la ruta de tu imagen predeterminada
+            src={session?.user.icon || '/c.png'}
             alt="Perfil"
             className="w-full h-full object-cover"
           />
@@ -26,13 +30,23 @@ const HeaderUser: React.FC = () => {
           <span className="text-sm text-black font-extrabold">{username}</span>
           <span className="text-sm text-black font-extrabold">{role}</span>
           <span className="text-sm text-black font-extrabold">{dateTime}</span>
+        {/* Título dinámico */}
+         
         </div>
+        
       </div>
+
+      {title && (
+        <h1 className=" ml-24 absolute top-24 left-0 text-3xl font-semibold text-[#27272e] mb-4">
+          {title}
+        </h1>
+      )}
       
-      {/* Líneas decorativas que atraviesan toda la pantalla */}
-      <div className="flex flex-col w-full gap-1 mt-32"> {/* Ajuste de margen superior a mt-32 */}
-        <div className="h-2 bg-[#25aa80] w-85 ml-24"></div> {/* Línea de arriba */}
-        <div className="h-2 bg-[#25aa80] w-full ml-28"></div> {/* Línea de abajo */}
+      
+      {/* Líneas decorativas debajo de los datos del usuario */}
+      <div className="absolute top-36 left-[-60px] right-0 w-[calc(100%+60px)]"> {/* Ajustado para dar espacio al título */}
+        <div className="w-full  h-2 bg-[#25aa80] mb-2"></div>
+        <div className="w-10/12 h-2 bg-[#25aa80] ml-auto mb-8"></div>
       </div>
     </div>
   );
