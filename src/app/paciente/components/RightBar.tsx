@@ -11,6 +11,7 @@ interface Patient {
   apellido: string;
   consultationReason: string;
   objective: string;
+  registro: string;
 }
 
 const PatientSkeleton: React.FC = () => (
@@ -61,14 +62,18 @@ const RightBar: React.FC = () => {
         console.log('Datos de pacientes recientes obtenidos del backend:', data);
 
         if (Array.isArray(data)) {
-          const formattedData = data.map((item) => ({
-            rup: item.rup,
-            photo: item.photo || '/default-avatar.png',
-            name: item.nombre,
-            apellido: item.apellido,
-            consultationReason: item.detallepaciente[0]?.motivo || 'No especificado',
-            objective: item.detallepaciente[0]?.objetivo || 'No especificado',
-          }));
+          const formattedData = data
+            .map((item) => ({
+              rup: item.rup,
+              photo: item.photo || '/default-avatar.png',
+              name: item.nombre,
+              apellido: item.apellido,
+              consultationReason: item.detallepaciente[0]?.motivo || 'No especificado',
+              objective: item.detallepaciente[0]?.objetivo || 'No especificado',
+              registro: item.registro || 'No especificado',
+            }))
+            .sort((a, b) => new Date(b.registro).getTime() - new Date(a.registro).getTime())
+            .slice(0, 4);
           setRecentPatients(formattedData);
         } else {
           setError('Formato de datos inesperado');
@@ -90,12 +95,14 @@ const RightBar: React.FC = () => {
   }, [session, status]);
 
   return (
-    <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)]"> {/* Ajusta la altura máxima según sea necesario */}
-      <Typography variant="h6" component="h2" gutterBottom>
-           </Typography>
+    <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+      {/* <Typography variant="h6" component="h2" gutterBottom>
+        Pacientes Recientes
+      </Typography> */}
       
       {status === 'loading' || loading ? (
         <>
+          <PatientSkeleton />
           <PatientSkeleton />
           <PatientSkeleton />
           <PatientSkeleton />
@@ -115,14 +122,16 @@ const RightBar: React.FC = () => {
                   className="rounded-full"
                 />
                 <div className="flex-grow">
-                <Typography className="font-bold text-[#25aa80]" variant="subtitle1">{patient.rup}</Typography>
-                  <Typography variant="subtitle1">{patient.name}</Typography>
-                  <Typography variant="subtitle1">{patient.apellido}</Typography>
+                  <Typography className="font-bold text-[#25aa80]" variant="subtitle1">{patient.rup}</Typography>
+                  <Typography variant="subtitle1">{patient.name} {patient.apellido}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {patient.consultationReason}
+                    Motivo:   {patient.consultationReason}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {patient.objective}
+                    Objetivo: {patient.objective}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Fecha de registro: {new Date(patient.registro).toLocaleDateString()}
                   </Typography>
                 </div>
                 <div className="flex space-x-2">

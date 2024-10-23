@@ -32,7 +32,7 @@ const PacienteDashboard: React.FC = () => {
             <Sidebar 
                 initialExpanded={isExpanded}
                 initialWidth="w-16"
-                expandedWidth="w-50"
+                expandedWidth="w-40"
                 onExpand={setIsExpanded}
             />
             <div className="flex-grow overflow-hidden">

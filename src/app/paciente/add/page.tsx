@@ -13,11 +13,13 @@ export default function AddPatientPage() {
           <HeaderUser title='Agregar Nuevo Paciente' />
           
           {/* Espacio adicional después del HeaderUser */}
-          <Box sx={{ height: '8rem' }} /> {/* Aumentado significativamente el espacio */}
+          <Box sx={{ height: '8rem' }} />
           
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
             <Box sx={{ flex: { xs: '1', lg: '3' } }}>
-              <AddPatientForm />
+              <Paper elevation={3} sx={{ p: 2, height: '100%' }}> {/* Añadido Paper aquí */}
+                <AddPatientForm />
+              </Paper>
             </Box>
             <Box sx={{ flex: { xs: '1', lg: '1' } }}>
               <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
