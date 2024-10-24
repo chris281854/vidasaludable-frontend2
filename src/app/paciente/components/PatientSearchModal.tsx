@@ -1,5 +1,6 @@
 // PatientSearchModal.tsx
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   Dialog,
   DialogTitle,
@@ -49,46 +50,74 @@ const GreenTableCell = styled(TableCell)(({ theme }) => ({
     fontWeight: 'bold',
   }));
 
-const PatientSearchModal: React.FC<PatientSearchModalProps> = ({ open, onClose, onSelectPatient }) => {
+  const PatientSearchModal: React.FC<PatientSearchModalProps> = ({ open, onClose, onSelectPatient }) => {
+    const { data: session, status } = useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Aquí deberías cargar los pacientes desde tu API
-    // Por ahora, usaremos datos de ejemplo
-    setPatients([
-        { 
-          rup: '001', 
-          nombre: 'Juan', 
-          apellido: 'Pérez', 
-          sexo: 'M', 
-          ciudad: 'Asunción', 
-          nacimiento: '1990-01-01', 
-          registro: '2021-10-01', 
-          email: 'juan@example.com',
-          detallePaciente: {
-            objetivo: 'Perder peso', 
-            motivo: 'Sobrepeso'
-          }
-        },
-        { 
-          rup: '002', 
-          nombre: 'María', 
-          apellido: 'González', 
-          sexo: 'F', 
-          ciudad: 'Luque', 
-          nacimiento: '1985-05-15', 
-          registro: '2021-10-02', 
-          email: 'maria@example.com',
-          detallePaciente: {
-            objetivo: 'Ganar masa muscular', 
-            motivo: 'Delgadez'
-          }
-        },
-        // ... más pacientes
-      ]);
-    }, []);
+    const fetchPatients = async () => {
+      if (!session?.user?.token) {
+        console.warn('No hay token disponible.');
+        setError('No autorizado. Inicia sesión.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.user.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al obtener los datos');
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          const formattedData = data.map((item) => {
+            const detalle: DetallePaciente | undefined = item.detallepaciente[0];
+            return {
+              rup: item.rup,
+              nombre: item.nombre,
+              apellido: item.apellido,
+              sexo: item.sexo,
+              ciudad: item.ciudad,
+              nacimiento: item.nacimiento,
+              registro: item.registro,
+              email: item.email,
+              detallePaciente: {
+                objetivo: detalle?.objetivo || 'No especificado',
+                motivo: detalle?.motivo || 'No especificado',
+              },
+            };
+          });
+
+          setPatients(formattedData);
+        } else {
+          setError('Formato de datos inesperado');
+        }
+      } catch (err) {
+        console.error('Error durante la llamada a la API:', err);
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (status === 'authenticated') {
+      fetchPatients();
+    }
+  }, [session, status]);
 
   useEffect(() => {
     setFilteredPatients(

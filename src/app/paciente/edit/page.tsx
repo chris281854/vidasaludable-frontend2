@@ -10,7 +10,7 @@ export default function EditPatientPage() {
     return (
       <PacienteLayout>
         <Box sx={{ p: 4 }}>
-          <HeaderUser title='Editar Paciente' />
+          <HeaderUser title='Gestion de Pacientes ~ Editar Paciente' />
           
           {/* Espacio adicional después del HeaderUser */}
           <Box sx={{ height: '8rem' }} />

@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { useSession } from "next-auth/react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import PatientSearchModal from '@/app/paciente/components/PatientSearchModal'; // Asegúrate de crear este componente
+import PatientSearchModal from '@/app/paciente/components/PatientSearchModal';
 
 const theme = createTheme({
   palette: {
@@ -110,7 +110,6 @@ const EditPatientForm: React.FC = () => {
   const [isRupDisabled, setIsRupDisabled] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  
   const validateField = (name: string, value: string) => {
     let error = '';
     switch (name) {
@@ -156,7 +155,22 @@ const EditPatientForm: React.FC = () => {
     return error;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+  const checkRupExists = async (rup: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${rup}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Error al verificar el RUP:', error);
+      return false;
+    }
+  };
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     const { name, value } = e.target;
     if (name === 'objetivo' || name === 'motivo') {
       setDetallepaciente(prev => ({ ...prev, [name]: value }));
@@ -166,7 +180,51 @@ const EditPatientForm: React.FC = () => {
     
     const error = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
+  
+    // Si el campo es RUP y tiene al menos 5 caracteres, buscar el paciente
+    if (name === 'rup' && value.length >= 5) {
+      try {
+        const patient = await searchPatientByRup(value);
+        setPatientData({
+          rup: patient.rup,
+          nombre: patient.nombre,
+          apellido: patient.apellido,
+          sexo: patient.sexo,
+          ciudad: patient.ciudad,
+          email: patient.email,
+          nacimiento: patient.nacimiento,
+          registro: patient.registro,
+          estado: patient.estado,
+          userNamepac: patient.userNamepac,
+        });
+        if (patient.detallePaciente) {
+          setDetallepaciente({
+            objetivo: patient.detallePaciente.objetivo || '',
+            motivo: patient.detallePaciente.motivo || '',
+          });
+        }
+        setIsRupDisabled(true);
+        setSnackbar({
+          open: true,
+          message: 'Paciente encontrado',
+          severity: 'success',
+        });
+      } catch (error) {
+        console.error('Error al buscar el paciente:', error);
+        setSnackbar({
+          open: true,
+          message: error instanceof Error ? error.message : 'Error al buscar el paciente',
+          severity: 'error',
+        });
+        // Limpiar los campos si no se encuentra el paciente
+        handleClear();
+      }
+    }
   };
+    
+//     const error = validateField(name, value);
+//     setErrors(prev => ({ ...prev, [name]: error }));
+//   };
 
   const handleGenerateRup = () => {
     if (patientData.nombre && patientData.apellido) {
@@ -185,7 +243,10 @@ const EditPatientForm: React.FC = () => {
   };
 
   const handleRupKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'F12') {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      searchPatient(patientData.rup);
+    } else if (event.key === 'F12') {
       event.preventDefault();
       setIsSearchModalOpen(true);
     }
@@ -203,28 +264,78 @@ const EditPatientForm: React.FC = () => {
       apellido: paciente.apellido,
       sexo: paciente.sexo,
       ciudad: paciente.ciudad,
-      email: paciente.email, // Asumiendo que no tienes este campo en la interfaz Patient
+      email: paciente.email,
       nacimiento: paciente.nacimiento,
       registro: paciente.registro,
-      estado: '', // Asumiendo que no tienes este campo en la interfaz Patient
-      userNamepac: '', // Asumiendo que no tienes este campo en la interfaz Patient
+      estado: '',
+      userNamepac: '',
     });
 
-   
     if (paciente.detallePaciente) {
+      setDetallepaciente({
+        objetivo: paciente.detallePaciente.objetivo || '',
+        motivo: paciente.detallePaciente.motivo || '',
+      });
+    } else {
+      setDetallepaciente({
+        objetivo: '',
+        motivo: '',
+      });
+    }
+
+    setIsSearchModalOpen(false);
+    setIsRupDisabled(true);
+  };
+
+
+  const searchPatient = async (rup: string) => {
+    if (rup.length < 5) {
+      setSnackbar({
+        open: true,
+        message: 'El RUP debe tener al menos 5 caracteres',
+        severity: 'error',
+      });
+      return;
+    }
+  
+    setIsLoading(true);
+    try {
+      const patient = await searchPatientByRup(rup);
+      setPatientData({
+        rup: patient.rup,
+        nombre: patient.nombre,
+        apellido: patient.apellido,
+        sexo: patient.sexo,
+        ciudad: patient.ciudad,
+        email: patient.email,
+        nacimiento: patient.nacimiento,
+        registro: patient.registro,
+        estado: patient.estado,
+        userNamepac: patient.userNamepac,
+      });
+      if (patient.detallePaciente) {
         setDetallepaciente({
-          objetivo: paciente.detallePaciente.objetivo || '',
-          motivo: paciente.detallePaciente.motivo || '',
-        });
-      } else {
-        setDetallepaciente({
-          objetivo: '',
-          motivo: '',
+          objetivo: patient.detallePaciente.objetivo || '',
+          motivo: patient.detallePaciente.motivo || '',
         });
       }
-      
-    setIsSearchModalOpen(false);
-    setIsRupDisabled
+      setIsRupDisabled(true);
+      setSnackbar({
+        open: true,
+        message: 'Paciente encontrado',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error al buscar el paciente:', error);
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Error al buscar el paciente',
+        severity: 'error',
+      });
+      handleClear();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleConfirmRupGeneration = () => {
@@ -233,6 +344,29 @@ const EditPatientForm: React.FC = () => {
     setIsRupDisabled(true);
     setOpenDialog(false);
   };
+
+
+  const searchPatientByRup = async (rup: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${rup}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
+        },
+      });
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Paciente no encontrado');
+        }
+        throw new Error('Error al buscar el paciente');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error al buscar el paciente:', error);
+      throw error;
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -257,10 +391,50 @@ const EditPatientForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Aquí iría la lógica para enviar los datos al servidor
-      console.log('Datos del paciente:', patientData);
-      console.log('Detalles del paciente:', detallepaciente);
-      
+        const rupExists = await checkRupExists(patientData.rup);
+    if (!rupExists) {
+      throw new Error('El RUP no existe. No se puede actualizar.');
+    }
+      const dataToSend = {
+        
+        nombre: patientData.nombre,
+        apellido: patientData.apellido,
+        sexo: patientData.sexo,
+        ciudad: patientData.ciudad,
+        email: patientData.email,
+        nacimiento: new Date(patientData.nacimiento).toISOString().split('T')[0],
+        registro: new Date(patientData.registro).toISOString().split('T')[0],
+        estado: 'VIGENTE',                      
+        userNamepac: session?.user?.name || 'defaultUser',
+        detallepaciente:[ 
+            {
+          idPaciente: patientData.rup,
+          objetivo: detallepaciente.objetivo,
+          motivo: detallepaciente.motivo,
+          fechaRegistro: new Date().toISOString(),
+          fechaModificacion: new Date().toISOString(),
+          estado: 'VIGENTE',
+          userName: session?.user?.name || 'defaultUser',
+        },
+    ]
+      };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${patientData.rup}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
+        },
+        body: JSON.stringify(dataToSend),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Respuesta del servidor:', response.status, errorText);
+        throw new Error(`Error del servidor: ${response.status} ${errorText}`);
+    //    console.log('Datos a enviar:', JSON.stringify(dataToSend, null, 2));
+      }
+
       setSnackbar({
         open: true,
         message: 'Paciente actualizado exitosamente',
@@ -300,7 +474,6 @@ const EditPatientForm: React.FC = () => {
     setErrors({});
     setIsRupDisabled(false);
   };
-
 
   return (
     <ThemeProvider theme={theme}>
@@ -530,15 +703,12 @@ const EditPatientForm: React.FC = () => {
             Confirmar
           </Button>
         </DialogActions>
-        {/* ... (el contenido del diálogo se mantiene igual) */}
-        </Dialog>
+      </Dialog>
       <PatientSearchModal
         open={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         onSelectPatient={handleSelectPatient}
       />
-    
-      
     </ThemeProvider>
   );
 };

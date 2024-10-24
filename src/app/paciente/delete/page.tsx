@@ -1,16 +1,16 @@
- 'use client';
+'use client';
 
-import AddPatientForm from '../../paciente/add/components/AddPatientForm';
-import RecentPatients from '../../paciente/components/RightBar';
-import PacienteLayout from '../../paciente/PacienteLayout';
+import DeletePatientForm from '../delete/components/DeletePatientForm';
+import RecentPatients from '../components/RightBar';
+import PacienteLayout from '../PacienteLayout';
 import HeaderUser from '../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
 
-export default function AddPatientPage() {
+export default function DeletePatientPage() {
     return (
       <PacienteLayout>
         <Box sx={{ p: 4 }}>
-          <HeaderUser title='Gestion de Pacientes ~ Agregar Nuevo Paciente' />
+          <HeaderUser title='Gestion de Pacientes ~ Eliminar Pacientes' />
           
           {/* Espacio adicional después del HeaderUser */}
           <Box sx={{ height: '8rem' }} />
@@ -18,7 +18,7 @@ export default function AddPatientPage() {
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
             <Box sx={{ flex: { xs: '1', lg: '3' } }}>
               <Paper elevation={3} sx={{ p: 2, height: '100%' }}> {/* Añadido Paper aquí */}
-                <AddPatientForm />
+                <DeletePatientForm />
               </Paper>
             </Box>
             <Box sx={{ flex: { xs: '1', lg: '1' } }}>

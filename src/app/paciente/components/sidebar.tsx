@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { AiFillHome, AiOutlineUser, AiOutlineFolderOpen, AiOutlinePlusCircle, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import { AiFillHome, AiOutlineUser, AiOutlineFolderOpen, AiOutlinePlusCircle, AiOutlineEdit, AiOutlineDelete, AiOutlineLogout } from 'react-icons/ai';
 import { FiSettings } from 'react-icons/fi';
 import { IconType } from 'react-icons';
 import Logo from '@/app/paciente/components/logo';
@@ -81,6 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [expanded, setExpanded] = useState(initialExpanded);
   const [isHovering, setIsHovering] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -106,6 +109,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: AiOutlineEdit, label: "Editar Paciente", href: "/paciente/edit" },
     { icon: AiOutlineDelete, label: "Eliminar Paciente", href: "/paciente/delete" },
   ];
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    // Aquí puedes agregar cualquier lógica adicional para eliminar el token si es necesario
+    router.push('/login'); // Redirige al usuario a la página de login
+  };
 
   return (
     <div
@@ -153,13 +162,24 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       </nav>
 
-      <div
-        className={`mt-auto flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 ${
-          expanded ? 'justify-start' : 'justify-center'
-        }`}
-      >
-        <FiSettings size={24} />
-        {expanded && <span className="text-lg">Ajustes</span>}
+      <div className="mt-auto">
+        <div
+          className={`flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 ${
+            expanded ? 'justify-start' : 'justify-center'
+          }`}
+        >
+          <FiSettings size={24} />
+          {expanded && <span className="text-lg">Ajustes</span>}
+        </div>
+        <div
+          className={`flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 cursor-pointer ${
+            expanded ? 'justify-start' : 'justify-center'
+          }`}
+          onClick={handleLogout}
+        >
+          <AiOutlineLogout size={24} />
+          {expanded && <span className="text-lg">Cerrar sesión</span>}
+        </div>
       </div>
     </div>
   );
