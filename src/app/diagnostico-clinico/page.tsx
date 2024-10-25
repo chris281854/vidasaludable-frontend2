@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import HeaderUser from "../../components/headeruser";
 import Sidebar from "../../components/sidebar";
-import PatientList from "./components/pacienteList";
+import DiagnosticoList from "./components/DiagnosticoList";
 import RightBar from "./components/RightBar";
 import { Button } from "@mui/material";
 import FilterInput from "../../components/FilterButon";
@@ -15,7 +15,7 @@ interface SidebarProps {
     onExpand?: (expanded: boolean) => void;
 }
 
-const PacienteDashboard: React.FC = () => {
+const DiagnosticoClinicoDashboard: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [filterText, setFilterText] = useState('');
 
@@ -36,7 +36,7 @@ const PacienteDashboard: React.FC = () => {
                 onExpand={setIsExpanded}
             />
             <div className="flex-grow overflow-hidden">
-                <HeaderUser title="Consulta General de Paciente" />
+                <HeaderUser title="Diagnosticos Clinicos ~ Dashboard" />
                 
                 <div className="p-8 pl-24 mt-48"> {/* Aumentado el margen superior a mt-48 */}
                     <div className="flex flex-col gap-8 mb-10"> {/* Aumentado el gap y el margen inferior */}
@@ -50,7 +50,7 @@ const PacienteDashboard: React.FC = () => {
                         </div>
                         
                         <FilterInput
-                            filterText={filterText}
+                            filterText="Buscar Diagnostico Clinico por RUP, Paciente"
                             onFilterChange={handleFilterChange}
                             onFilterSubmit={handleFilterSubmit}
                         />
@@ -58,12 +58,12 @@ const PacienteDashboard: React.FC = () => {
                     
                     <div className="flex gap-8">
                         <div className="w-2/3 pr-4">
-                            <PatientList filterText={filterText} />
+                           {/* <DiagnosticoList filterText={filterText} /> */}
                         </div>
                         <div className="w-1/4">
                             <div className="sticky top-24">
                                 <h2 className="text-black text-2xl font-semibold font-['Inter'] mb-4">
-                                    Últimos pacientes registrados
+                                    Últimos Diagnosticos registrados
                                 </h2>
                                 <div className="top-24">
                                     <RightBar />
@@ -77,4 +77,4 @@ const PacienteDashboard: React.FC = () => {
     );
 };
 
-export default PacienteDashboard;
+export default DiagnosticoClinicoDashboard;

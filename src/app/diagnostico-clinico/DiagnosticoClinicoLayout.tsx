@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/sidebar';
 
-interface PacienteLayoutProps {
+interface DiagnosticoClinicoLayoutProps {
   children: React.ReactNode;
 }
 
-const PacienteLayout: React.FC<PacienteLayoutProps> = ({ children }) => {
+const DiagnosticoClinicoLayout: React.FC<DiagnosticoClinicoLayoutProps> = ({ children }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -23,4 +23,4 @@ const PacienteLayout: React.FC<PacienteLayoutProps> = ({ children }) => {
   );
 };
 
-export default PacienteLayout;
+export default DiagnosticoClinicoLayout;

@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -7,6 +7,8 @@ import { AiFillHome, AiOutlineUser, AiOutlineFolderOpen, AiOutlinePlusCircle, Ai
 import { FiSettings } from 'react-icons/fi';
 import { IconType } from 'react-icons';
 import Logo from '@/app/paciente/components/logo';
+import { FaListAlt } from "react-icons/fa";
+import { LiaListAlt } from "react-icons/lia";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -110,6 +112,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: AiOutlineDelete, label: "Eliminar Paciente", href: "/paciente/delete" },
   ];
 
+
+  const diagnosticoSubItems = [
+    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/diagnostico-clinico/dashboard" },
+    { icon: AiOutlinePlusCircle, label: "Agregar Diagnostico", href: "/diagnostico-clinico/add" },
+    { icon: AiOutlineEdit, label: "Editar Diagnostico", href: "/diagnostico-clinico/edit" },
+    { icon: AiOutlineDelete, label: "Eliminar Diagnostico", href: "/diagnostico-clinico/delete" },
+  ];
+
+
   const handleLogout = async () => {
     await signOut({ redirect: false });
     // Aquí puedes agregar cualquier lógica adicional para eliminar el token si es necesario
@@ -135,14 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       />
 
       <nav className="flex flex-col w-full gap-2 flex-grow overflow-y-auto">
-        <SidebarItem 
-          icon={AiFillHome} 
-          label="Inicio" 
-          href="/dashboard" 
-          expanded={expanded}
-          activeSubmenu={activeSubmenu}
-          setActiveSubmenu={setActiveSubmenu}
-        />
+        
         <SidebarItem 
           icon={AiOutlineUser} 
           label="Perfil" 
@@ -155,6 +159,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           icon={AiOutlineFolderOpen} 
           label="Pacientes" 
           href="/paciente" 
+          expanded={expanded}
+          subItems={patientSubItems}
+          activeSubmenu={activeSubmenu}
+          setActiveSubmenu={setActiveSubmenu}
+        />
+        <SidebarItem 
+          icon={FaListAlt} 
+          label="Diagnosticos" 
+          href="/diagnostico-clinico" 
           expanded={expanded}
           subItems={patientSubItems}
           activeSubmenu={activeSubmenu}

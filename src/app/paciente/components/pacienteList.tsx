@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import SkeletonLoader from './SkeletonLoader';
+import SkeletonLoader from '../../../components/SkeletonLoader';
 
 interface DetailPaciente {
   objetivo: string;

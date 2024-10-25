@@ -3,7 +3,7 @@
 import EditPatientForm from '../edit/components/EditPatientForm';
 import RecentPatients from '../components/RightBar';
 import PacienteLayout from '../PacienteLayout';
-import HeaderUser from '../components/headeruser';
+import HeaderUser from '../../../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
 
 export default function EditPatientPage() {

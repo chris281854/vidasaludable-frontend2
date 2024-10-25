@@ -3,7 +3,7 @@
 import AddPatientForm from '../../paciente/add/components/AddPatientForm';
 import RecentPatients from '../../paciente/components/RightBar';
 import PacienteLayout from '../../paciente/PacienteLayout';
-import HeaderUser from '../components/headeruser';
+import HeaderUser from '../../../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
 
 export default function AddPatientPage() {

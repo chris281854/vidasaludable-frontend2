@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { FaFingerprint } from 'react-icons/fa';
-import { MdDeleteSweep } from 'react-icons/md';
+import { FaSave, FaFingerprint } from 'react-icons/fa';
 import { 
   TextField, 
   Select, 
@@ -25,6 +24,8 @@ import {
 import { useSession } from "next-auth/react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import PatientSearchModal from '@/app/paciente/components/PatientSearchModal';
+import { FaDeleteLeft } from 'react-icons/fa6';
+import { MdDeleteSweep } from "react-icons/md";
 
 const theme = createTheme({
   palette: {
@@ -114,25 +115,128 @@ const DeletePatientForm: React.FC = () => {
   const validateField = (name: string, value: string) => {
     let error = '';
     switch (name) {
+      case 'nombre':
+      case 'apellido':
+        if (value.trim().length < 2) {
+          error = 'Debe tener al menos 2 caracteres';
+        }
+        break;
       case 'rup':
         if (value.trim().length < 5) {
           error = 'Debe tener al menos 5 caracteres';
         }
         break;
-      // Puedes agregar más validaciones si es necesario
+      case 'email':
+        if (!/\S+@\S+\.\S+/.test(value)) {
+          error = 'Debe ser un email válido';
+        }
+        break;
+      case 'nacimiento':
+      case 'registro':
+        if (!value) {
+          error = 'La fecha es requerida';
+        }
+        break;
+      case 'sexo':
+        if (!value) {
+          error = 'Seleccione una opción';
+        }
+        break;
+      case 'ciudad':
+        if (value.trim().length < 3) {
+          error = 'Debe tener al menos 3 caracteres';
+        }
+        break;
+      case 'objetivo':
+      case 'motivo':
+        if (value.trim().length < 10) {
+          error = 'Debe tener al menos 10 caracteres';
+        }
+        break;
     }
     return error;
   };
 
+  const checkRupExists = async (rup: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${rup}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
+        },
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('Error al verificar el RUP:', error);
+      return false;
+    }
+  };
+
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     const { name, value } = e.target;
-    setPatientData(prev => ({ ...prev, [name]: value }));
+    if (name === 'objetivo' || name === 'motivo') {
+      setDetallepaciente(prev => ({ ...prev, [name]: value }));
+    } else {
+      setPatientData(prev => ({ ...prev, [name]: value }));
+    }
     
     const error = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
   
+    // Si el campo es RUP y tiene al menos 5 caracteres, buscar el paciente
     if (name === 'rup' && value.length >= 5) {
-      await searchPatient(value);
+      try {
+        const patient = await searchPatientByRup(value);
+        setPatientData({
+          rup: patient.rup,
+          nombre: patient.nombre,
+          apellido: patient.apellido,
+          sexo: patient.sexo,
+          ciudad: patient.ciudad,
+          email: patient.email,
+          nacimiento: patient.nacimiento,
+          registro: patient.registro,
+          estado: patient.estado,
+          userNamepac: patient.userNamepac,
+        });
+        if (patient.detallePaciente) {
+          setDetallepaciente({
+            objetivo: patient.detallePaciente.objetivo || '',
+            motivo: patient.detallePaciente.motivo || '',
+          });
+        }
+        setIsRupDisabled(true);
+        setSnackbar({
+          open: true,
+          message: 'Paciente encontrado',
+          severity: 'success',
+        });
+      } catch (error) {
+        console.error('Error al buscar el paciente:', error);
+        setSnackbar({
+          open: true,
+          message: error instanceof Error ? error.message : 'Error al buscar el paciente',
+          severity: 'error',
+        });
+        // Limpiar los campos si no se encuentra el paciente
+        handleClear();
+      }
+    }
+  };
+    
+//     const error = validateField(name, value);
+//     setErrors(prev => ({ ...prev, [name]: error }));
+//   };
+
+  const handleGenerateRup = () => {
+    if (patientData.nombre && patientData.apellido) {
+      setOpenDialog(true);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'Por favor, complete el nombre y apellido antes de generar el RUP',
+        severity: 'error',
+      });
     }
   };
 
@@ -185,6 +289,7 @@ const DeletePatientForm: React.FC = () => {
     setIsRupDisabled(true);
   };
 
+
   const searchPatient = async (rup: string) => {
     if (rup.length < 5) {
       setSnackbar({
@@ -235,11 +340,20 @@ const DeletePatientForm: React.FC = () => {
     }
   };
 
+  const handleConfirmRupGeneration = () => {
+    const rup = `${patientData.nombre.charAt(0)}${patientData.apellido.charAt(0)}${Date.now()}`;
+    setPatientData(prev => ({ ...prev, rup }));
+    setIsRupDisabled(true);
+    setOpenDialog(false);
+  };
+
+
   const searchPatientByRup = async (rup: string) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${rup}`, {
         method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
         },
       });
@@ -256,37 +370,67 @@ const DeletePatientForm: React.FC = () => {
     }
   };
 
-  const handleDelete = () => {
-    if (window.confirm('¿Está seguro de que desea eliminar este paciente?')) {
-      handleSubmit(new Event('submit') as React.FormEvent<HTMLFormElement>);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!patientData.rup) {
-      setSnackbar({
-        open: true,
-        message: 'Por favor, ingrese un RUP válido',
-        severity: 'error',
-      });
+    const newErrors = {
+      ...Object.keys(patientData).reduce((acc, key) => ({
+        ...acc,
+        [key]: validateField(key, patientData[key as keyof PatientData])
+      }), {}),
+      ...Object.keys(detallepaciente).reduce((acc, key) => ({
+        ...acc,
+        [key]: validateField(key, detallepaciente[key as keyof DetallePaciente])
+      }), {})
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some(error => error !== '')) {
+      console.error('Hay errores en el formulario');
       return;
     }
 
     setIsLoading(true);
     try {
+        const rupExists = await checkRupExists(patientData.rup);
+    if (!rupExists) {
+      throw new Error('El RUP no existe. No se puede eliminar.');
+    }
+     const dataToSend = {
+        
+        rup: patientData.rup,
+        detallepaciente:[ 
+            {
+          idPaciente: patientData.rup,
+           
+        },
+    ]
+     };
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable/${patientData.rup}`, {
         method: 'DELETE',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token?.trim() || ''}`,
         },
+        body: JSON.stringify({
+          rup: patientData.rup,
+          detallepaciente:[ 
+              {
+            idPaciente: patientData.rup,
+             
+          },
+      ]
+        }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Respuesta del servidor:', response.status, errorText);
         throw new Error(`Error del servidor: ${response.status} ${errorText}`);
+        console.log(dataToSend );
       }
 
       setSnackbar({
@@ -300,7 +444,7 @@ const DeletePatientForm: React.FC = () => {
       console.error('Error al eliminar los datos:', error);
       setSnackbar({
         open: true,
-        message: error instanceof Error ? error.message : 'Error al eliminar los datos del paciente',
+        message: 'Error al eliminar los datos del paciente',
         severity: 'error',
       });
     } finally {
@@ -334,12 +478,12 @@ const DeletePatientForm: React.FC = () => {
       <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: '1024px', margin: '0 auto' }}>
         <Box bgcolor="black" borderRadius="20px" mb={3} py={1} px={2}>
           <Typography variant="subtitle1" color="white" fontWeight="bold">
-            Datos del paciente a eliminar
+            Datos generales del paciente
           </Typography>
         </Box>
         
         <Grid container spacing={3} mb={3}>
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               label="RUP"
@@ -354,7 +498,7 @@ const DeletePatientForm: React.FC = () => {
               disabled={isRupDisabled}
               InputProps={{
                 endAdornment: (
-                  <IconButton onClick={() => searchPatient(patientData.rup)} disabled={isRupDisabled}>
+                  <IconButton onClick={handleGenerateRup} disabled={isRupDisabled}>
                     <FaFingerprint />
                   </IconButton>
                 ),
@@ -367,8 +511,10 @@ const DeletePatientForm: React.FC = () => {
               label="Nombre del paciente"
               name="nombre"
               value={patientData.nombre}
+              onChange={handleChange}
               variant="outlined"
-              disabled
+              error={!!errors.nombre}
+              helperText={errors.nombre}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -377,19 +523,137 @@ const DeletePatientForm: React.FC = () => {
               label="Apellido del paciente"
               name="apellido"
               value={patientData.apellido}
+              onChange={handleChange}
               variant="outlined"
-              disabled
+              error={!!errors.apellido}
+              helperText={errors.apellido}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth variant="outlined" error={!!errors.sexo}>
+              <InputLabel id="sexo-label">Sexo</InputLabel>
+              <Select
+                labelId="sexo-label"
+                name="sexo"
+                value={patientData.sexo}
+                onChange={handleChange}
+                label="Sexo"
+              >
+                <MenuItem value="">Seleccione</MenuItem>
+                <MenuItem value="masculino">Masculino</MenuItem>
+                <MenuItem value="femenino">Femenino</MenuItem>
+                <MenuItem value="otro">Otro</MenuItem>
+              </Select>
+              {errors.sexo && <Typography color="error" variant="caption">{errors.sexo}</Typography>}
+            </FormControl>
+          </Grid>
+        </Grid>
+
+        <Box bgcolor="black" borderRadius="20px" mb={3} py={1} px={2}>
+          <Typography variant="subtitle1" color="white" fontWeight="bold">
+            Datos complementarios del paciente
+          </Typography>
+        </Box>
+        
+        <Grid container spacing={3} mb={3}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Ciudad"
+              name="ciudad"
+              value={patientData.ciudad}
+              onChange={handleChange}
+              variant="outlined"
+              error={!!errors.ciudad}
+              helperText={errors.ciudad}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Email"
+              name="email"
+              value={patientData.email}
+              onChange={handleChange}
+              variant="outlined"
+              type="email"
+              error={!!errors.email}
+              helperText={errors.email}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Fecha de nacimiento"
+              name="nacimiento"
+              value={patientData.nacimiento}
+              onChange={handleChange}
+              variant="outlined"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.nacimiento}
+              helperText={errors.nacimiento}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Fecha de Registro"
+              name="registro"
+              value={patientData.registro}
+              onChange={handleChange}
+              variant="outlined"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.registro}
+              helperText={errors.registro}
+            />
+          </Grid>
+        </Grid>
+
+        <Box bgcolor="black" borderRadius="20px" mb={3} mt={4} py={1} px={2}>
+          <Typography variant="subtitle1" color="white" fontWeight="bold">
+            Detalle de pacientes
+          </Typography>
+        </Box>
+
+        <Grid container spacing={3} mb={3}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Objetivo del paciente"
+              name="objetivo"
+              value={detallepaciente.objetivo}
+              onChange={handleChange}
+              variant="outlined"
+              multiline
+              rows={4}
+              error={!!errors.objetivo}
+              helperText={errors.objetivo}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Motivo de consulta"
+              name="motivo"
+              value={detallepaciente.motivo}
+              onChange={handleChange}
+              variant="outlined"
+              multiline
+              rows={4}
+              error={!!errors.motivo}
+              helperText={errors.motivo}
             />
           </Grid>
         </Grid>
 
         <Box display="flex" justifyContent="space-between" mt={3}>
           <Button
-            type="button"
+            type="submit"
             variant="contained"
             color="primary"
-            onClick={handleDelete}
-            disabled={isLoading || !patientData.rup}
+            disabled={isLoading}
             startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <MdDeleteSweep />}
             style={{ 
               width: '180px', 
@@ -417,6 +681,27 @@ const DeletePatientForm: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Confirmación de generación de RUP"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Una vez generado, el RUP no podrá ser editado. ¿Está seguro de que desea generar el RUP ahora?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleConfirmRupGeneration} color="primary" autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
       <PatientSearchModal
         open={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
