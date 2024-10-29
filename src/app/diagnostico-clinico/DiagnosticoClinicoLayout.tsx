@@ -16,7 +16,7 @@ const DiagnosticoClinicoLayout: React.FC<DiagnosticoClinicoLayoutProps> = ({ chi
         expandedWidth="w-55"
         onExpand={(expanded) => setIsExpanded(expanded)}
       />
-      <main className="flex-1 bg-gray-100 min-h-screen ml-16"> {/* Margen izquierdo fijo */}
+    <main className="flex-1 bg-gray-400 min-h-screen ml-16"> {/* Margen izquierdo fijo */}
         {children}
       </main>
     </div>

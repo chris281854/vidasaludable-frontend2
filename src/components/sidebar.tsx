@@ -107,6 +107,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, [expanded, onExpand]);
 
   const patientSubItems = [
+    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/paciente/" },
+
     { icon: AiOutlinePlusCircle, label: "Agregar Paciente", href: "/paciente/add" },
     { icon: AiOutlineEdit, label: "Editar Paciente", href: "/paciente/edit" },
     { icon: AiOutlineDelete, label: "Eliminar Paciente", href: "/paciente/delete" },
@@ -114,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 
   const diagnosticoSubItems = [
-    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/diagnostico-clinico/dashboard" },
+    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/diagnostico-clinico/" },
     { icon: AiOutlinePlusCircle, label: "Agregar Diagnostico", href: "/diagnostico-clinico/add" },
     { icon: AiOutlineEdit, label: "Editar Diagnostico", href: "/diagnostico-clinico/edit" },
     { icon: AiOutlineDelete, label: "Eliminar Diagnostico", href: "/diagnostico-clinico/delete" },
@@ -169,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           label="Diagnosticos" 
           href="/diagnostico-clinico" 
           expanded={expanded}
-          subItems={patientSubItems}
+          subItems={diagnosticoSubItems}
           activeSubmenu={activeSubmenu}
           setActiveSubmenu={setActiveSubmenu}
         />
