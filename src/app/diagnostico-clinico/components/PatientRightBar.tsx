@@ -55,6 +55,7 @@ interface PatientRightBarProps {
     ciudadPaciente: string;
     objetivoConsulta: string;
   };
+   disabled?: boolean; // Añadimos esta prop
   onRupChange: (rup: string) => void;
   onPatientSelect: (patient: Patient) => void;
 }
@@ -62,7 +63,8 @@ interface PatientRightBarProps {
 const PatientRightBar: React.FC<PatientRightBarProps> = ({
   patientData,
   onRupChange,
-  onPatientSelect
+  onPatientSelect,
+  disabled
 }) => {
   const { data: session } = useSession();
   const [imagePreview, setImagePreview] = useState<string | null>(patientData.fotoUrl || null);
@@ -188,7 +190,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
           <Box sx={{ position: 'relative' }}>
             <Avatar
-              src={imagePreview || '/default-avatar.png'}
+              src={imagePreview || '/c.png'}
               sx={{ 
                 width: 120, 
                 height: 120,
@@ -225,6 +227,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
             label="RUP"
             value={patientData.rupPaciente}
             onChange={(e) => onRupChange(e.target.value)}
+            disabled={disabled} // Añadimos esta línea
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
