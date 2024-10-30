@@ -37,6 +37,8 @@ import es from 'date-fns/locale/es';
 import { format } from 'date-fns';
 import PatientRightBar from "../components/PatientRightBar";
 import ConfirmLimpiarDialog from "../components/ConfirmLimpiarDialog";
+import DiagnosticoSearchField from "./components/DiagnosticoSearchField";
+import { useDiagnosticoSearch } from "./Hooks/userDiagnosticoSearch";
 
 interface DetallePaciente {
   objetivo: string;
@@ -56,6 +58,7 @@ interface Patient {
 }
 
 interface FormData {
+  diagnosticoId: string;
   analiticas: string;
   observaciones: string;
   conclusionMedica: string;
@@ -113,7 +116,8 @@ const buttonStyles = {
   }
 };
 
-const NuevoDiagnostico = () => {
+const EditarDiagnostico = () => {
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -137,7 +141,9 @@ const NuevoDiagnostico = () => {
     duration: 6000
   });
 
+  const [diagnosticoId, setDiagnosticoId] = useState('');
   const [formData, setFormData] = useState<FormData>({
+    diagnosticoId:'',
     analiticas: '',
     observaciones: '',
     conclusionMedica: '',
@@ -161,6 +167,8 @@ const NuevoDiagnostico = () => {
     fechaRegistro: '',
     objetivoConsulta: '',
   });
+
+  
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -398,96 +406,53 @@ const NuevoDiagnostico = () => {
     }
   };
 
-  const handleGuardar = async () => {
-    if (!session?.user?.token) {
-      showNotification('No hay sesión activa', 'error');
-      return;
-    }
-  
-    if (!formData.rupPaciente) {
-      showNotification('Debe seleccionar un paciente', 'error');
-      return;
-    }
-  
-    if (!formData.codigoMedico) {
-      showNotification('Debe ingresar el código del médico', 'error');
-      return;
-    }
-  
-    if (!formData.fechaDiagnostico) {
-      showNotification('La fecha del diagnóstico es requerida', 'error');
-      return;
-    }
-
-    if (!formData.fechaProximaRevision) {
-      showNotification('La fecha de la proxima revision es requerida', 'error');
+  const handleEditar = async () => {
+    if (!formData.diagnosticoId) {
+      showNotification('No hay un diagnóstico seleccionado para editar', 'error');
       return;
     }
   
     setLoading(true);
     try {
-      const formatearFecha = (fecha: string | Date | null): string | null => {
-        if (!fecha) return null;
-        // Si es string, convertir a Date primero
-        const fechaObj = typeof fecha === 'string' ? new Date(fecha) : fecha;
-        if (!(fechaObj instanceof Date) || isNaN(fechaObj.getTime())) return null;
-        
-        return `${fechaObj.getFullYear()}-${
-          String(fechaObj.getMonth() + 1).padStart(2, '0')
-        }-${
-          String(fechaObj.getDate()).padStart(2, '0')
-        }`;
-      };
-
-      // Formatear los datos según la estructura esperada por el backend
       const diagnosticoData = {
+        diagnosticoId: formData.diagnosticoId,
         rup: formData.rupPaciente,
         idMedico: parseInt(formData.codigoMedico),
         analiticas: formData.analiticas || '',
         resultados: formData.resultados || '',
         conclusionMedica: formData.conclusionMedica || '',
-        seguimiento: formData.requiereEvaluacion === 'si',
-        prioridad: formData.prioridad || 'BAJO',
+        seguimiento: formData.requiereEvaluacion === 'SI',
+        prioridad: formData.prioridad || 'BAJA',
         especialidad: formData.especialidad || '',
         observacionesPriodidad: formData.observacionesPrioridad || '',
-        fechaDiagnostico: formatearFecha(new Date(formData.fechaDiagnostico)),
-        proximaVisita: formatearFecha(new Date(formData.fechaProximaRevision)),
-        userName: session.user.name || '',
+       // fechaDiagnostico: formatearFechaSQL(new Date(formData.fechaDiagnostico)),
+       // proximaVisita: formatearFechaSQL(new Date(formData.fechaProximaRevision)),
+        userName: session?.user?.name || '',
       };
   
-      console.log('Datos a enviar:', diagnosticoData);
-  
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/diagnostico-clinico`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.user.token}`,
-        },
-        body: JSON.stringify(diagnosticoData),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        console.error('Error response:', errorData);
-        throw new Error(errorData?.message || 'Error al guardar el diagnóstico');
-      }
-  
-      const responseData = await response.json();
-      console.log('Respuesta exitosa:', responseData);
-  
-      showNotification('Diagnóstico guardado exitosamente', 'success');
-      handleLimpiar();
-    } catch (error) {
-      console.error('Error detallado:', error);
-      showNotification(
-        error instanceof Error ? error.message : 'Error al guardar el diagnóstico',
-        'error'
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/diagnostico-clinico/${diagnosticoData.diagnosticoId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.user?.token}`,
+          },
+          body: JSON.stringify(diagnosticoData),
+        }
       );
+  
+      if (!response.ok) throw new Error('Error al actualizar el diagnóstico');
+  
+      showNotification('Diagnóstico actualizado exitosamente', 'success');
+      router.push('/diagnosticos');
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Error al actualizar el diagnóstico', 'error');
     } finally {
       setLoading(false);
     }
   };
-
 
 
   const [showConfirmLimpiarDialog, setShowConfirmLimpiarDialog] = useState(false);
@@ -502,6 +467,7 @@ const NuevoDiagnostico = () => {
   
   const resetForm = () => {
     setFormData({
+        diagnosticoId:'',
       analiticas: '',
       observaciones: '',
       conclusionMedica: '',
@@ -551,9 +517,17 @@ const NuevoDiagnostico = () => {
       />
       
       <div className="flex-grow">
-        <HeaderUser title="Diagnóstico Clínico ~ Nuevos Registros" />
+        <HeaderUser title="Diagnóstico Clínico ~ Edicion de Registros" />
         
         <div className="p-8 pl-24 mt-48">
+        <div className="flex justify-start col-span-8 mt-10">
+                <DiagnosticoSearchField 
+                    diagnosticoId={diagnosticoId} 
+                    onChange={(value: string) => setDiagnosticoId(value)} 
+                    onSearch={useDiagnosticoSearch({ onSuccess: () => {}, onError: () => {}, resetForm: () => {} }).searchDiagnostico}
+                    disabled={loading}
+                />
+                </div>
           <div className="grid grid-cols-12 gap-8">
             {/* Columna principal - Lado izquierdo */}
             <div className="col-span-8">
@@ -768,24 +742,22 @@ const NuevoDiagnostico = () => {
             </Paper>
                         {/* Botones de acción */}
                         <div className="flex justify-between gap-4 mt-8">
-              <Button 
-                variant="contained" 
-                onClick={handleGuardar}
-                disabled={loading}
-                sx={{
-                  ...buttonStyles,
-                  backgroundColor: '#25aa80',
-                  '&:hover': {
-                    backgroundColor: '#1e8c66',
-                  }
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: 'white' }} />
-                ) : (
-                  'Guardar'
-                )}
-              </Button>
+                        <Button 
+                            variant="contained" 
+                            onClick={handleEditar}
+                            disabled={loading || !formData.diagnosticoId}
+                            sx={{
+                                ...buttonStyles,
+                                backgroundColor: '#25aa80',
+                            }}
+                            >
+                            {loading ? (
+                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                            ) : (
+                                'Actualizar'
+                            )}
+                            </Button>
+              
               <Button 
       variant="contained" 
       onClick={() => handleLimpiar(false)}
@@ -953,4 +925,4 @@ const NuevoDiagnostico = () => {
 );
 }
 
-export default NuevoDiagnostico;
+export default EditarDiagnostico;

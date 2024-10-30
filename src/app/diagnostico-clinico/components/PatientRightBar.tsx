@@ -96,6 +96,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
     try {
       setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable`, {
+        method: 'GET',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.user.token}`,
@@ -105,10 +106,15 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
       if (!response.ok) throw new Error('Error al obtener los datos');
 
       const data = await response.json();
-      setPatients(data);
+      if (Array.isArray(data)) {
+        setPatients(data);
+      } else {
+        console.error('Los datos recibidos no son un array:', data);
+        throw new Error('Formato de datos incorrecto');
+      }
     } catch (error) {
-      setError('Error al cargar los pacientes');
-      console.error(error);
+      console.error('Error completo:', error);
+      setError(error instanceof Error ? error.message : 'Error al cargar los pacientes');
     } finally {
       setLoading(false);
     }
