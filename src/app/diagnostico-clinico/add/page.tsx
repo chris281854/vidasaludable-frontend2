@@ -37,6 +37,7 @@ import es from 'date-fns/locale/es';
 import { format } from 'date-fns';
 import PatientRightBar from "../components/PatientRightBar";
 import ConfirmLimpiarDialog from "../components/ConfirmLimpiarDialog";
+import DiagnosticoClinicoLayout from "../DiagnosticoClinicoLayout";
 
 interface DetallePaciente {
   objetivo: string;
@@ -542,6 +543,7 @@ const NuevoDiagnostico = () => {
   }
 
   return (
+      <DiagnosticoClinicoLayout>
     <div className="flex min-h-screen bg-white">
       <Sidebar 
         initialExpanded={isExpanded}
@@ -950,7 +952,10 @@ const NuevoDiagnostico = () => {
       </div>
     </div>
   </div>
+  </DiagnosticoClinicoLayout>
 );
+ 
+
 }
 
 export default NuevoDiagnostico;

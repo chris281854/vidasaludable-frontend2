@@ -75,6 +75,7 @@ const DiagnosticoDetails: React.FC<DiagnosticoDetailsProps> = ({ diagnosticoId, 
     };
 
     return (
+        
         <div>
             <Modal open={open} onClose={handleClose}>
                 <Box sx={{ 

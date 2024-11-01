@@ -8,8 +8,7 @@ import Sidebar from "../../../components/sidebar";
 import PatientRightBar from "../components/PatientRightBar";
 import ConfirmacionFirmaDialog from "../components/ConfirmacionFirmaDialog";
 import ConfirmLimpiarDialog from "../components/ConfirmLimpiarDialog";
-import DiagnosticoSearchField from "./components/DiagnosticoSearchField";
-import { 
+ import { 
   TextField, 
   Button, 
   Radio, 
@@ -37,6 +36,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import es from 'date-fns/locale/es';
 import { format } from 'date-fns';
+import DiagnosticoSearchField from "../edit/components/DiagnosticoSearchField";
 
 interface DetallePaciente {
   objetivo: string;
@@ -114,7 +114,7 @@ const buttonStyles = {
   }
 };
 
-const EditarDiagnostico = () => {
+const EliminarDiagnostico = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -466,7 +466,7 @@ const EditarDiagnostico = () => {
     }
 };
 
-const handleEditar = async () => {
+const handleEliminar = async () => {
     if (!formData.diagnosticoId) {
         showNotification('No hay un diagnóstico seleccionado para editar', 'error');
         return;
@@ -477,21 +477,13 @@ const handleEditar = async () => {
         const diagnosticoData = {
           
             rup: formData.rupPaciente,
-            idMedico: parseInt(formData.codigoMedico),
-            analiticas: formData.analiticas || '',
-            resultados: formData.resultados || '',
-            conclusionMedica: formData.conclusionMedica || '',
-            seguimiento: formData.requiereEvaluacion === 'SI',
-            prioridad: formData.prioridad || '',
             
-            observacionesPriodidad: formData.observacionesPrioridad || '',
-            userName: session?.user?.name || '',
         };
 
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/diagnostico-clinico/${diagnosticoId}`,
             {
-                method: 'PATCH',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session?.user?.token}`,
@@ -502,14 +494,14 @@ const handleEditar = async () => {
 
         if (!response.ok) {
             const errorData = await response.json(); // Obtener el mensaje de error del servidor
-            throw new Error(errorData.message || 'Error al actualizar el diagnóstico');
+            throw new Error(errorData.message || 'Error al Eliminar el diagnóstico');
         }
 
-        showNotification('Diagnóstico actualizado exitosamente', 'success');
+        showNotification('Diagnóstico eliminado exitosamente', 'success');
         handleLimpiar(); // Limpiar el formulario después de editar
     } catch (error) {
         console.error('Error:', error);
-        showNotification((error as Error).message || 'Error al actualizar el diagnóstico', 'error'); // Mostrar el mensaje de error
+        showNotification((error as Error).message || 'Error al eliminar el diagnóstico', 'error'); // Mostrar el mensaje de error
     } finally {
         setLoading(false);
     }
@@ -574,7 +566,7 @@ const handleEditar = async () => {
       />
       
       <div className="flex-grow">
-        <HeaderUser title="Diagnóstico Clínico ~ Edición de Registros" />
+        <HeaderUser title="Diagnóstico Clínico ~ Eliminación de Registros" />
         
         <div className="p-8 pl-24 mt-48">
         <Box display="flex" alignItems="center">
@@ -802,7 +794,7 @@ const handleEditar = async () => {
               <div className="flex justify-between gap-4 mt-8">
                 <Button 
                   variant="contained" 
-                  onClick={handleEditar}
+                  onClick={handleEliminar}
                   disabled={loading || !formData.diagnosticoId}
                   sx={{
                     ...buttonStyles,
@@ -812,7 +804,7 @@ const handleEditar = async () => {
                   {loading ? (
                     <CircularProgress size={24} sx={{ color: 'white' }} />
                   ) : (
-                    'Actualizar'
+                    'Eliminar'
                   )}
                 </Button>
               
@@ -984,4 +976,4 @@ const handleEditar = async () => {
   );
 }
 
-export default EditarDiagnostico;
+export default EliminarDiagnostico;
