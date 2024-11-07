@@ -1,3 +1,4 @@
+// src/components/PatientRightBar.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,6 @@ import {
   TextField, 
   Box, 
   Typography,
-  Avatar,
   InputAdornment,
   IconButton,
   Modal,
@@ -16,44 +16,45 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import BadgeIcon from '@mui/icons-material/Badge';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DescriptionIcon from '@mui/icons-material/Description';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
-import { useSession } from 'next-auth/react';
+import EditIcon from '@mui/icons-material/Edit';
+import WarningIcon from '@mui/icons-material/Warning';
+import useFetchPatients from '../../hooks/userFetchPatients';
 
 interface Patient {
-    fotoUrl: null;
-    rupPaciente: unknown;
-    nombrePaciente: unknown;
-    apellidoPaciente: unknown;
-    ciudadPaciente: unknown;
-    fechaRegistro: any;
-    objetivoConsulta: unknown;
     rup: string;
     nombre: string;
     apellido: string;
-    sexo: string;
     ciudad: string;
-    nacimiento: string;
     registro: string;
-    email: string;
     detallepaciente?: DetallePaciente[];
-  }
+}
 
-  interface DetallePaciente {
+interface DetallePaciente {
     objetivo: string;
     motivo: string;
-  }
+}
+
 interface PatientRightBarProps {
-  patientData: Patient;
-  disabled?: boolean; // Añadimos esta prop
+  patientData: {
+    fotoUrl: string;
+    nombrePaciente: string;
+    apellidoPaciente: string;
+    rupPaciente: string;
+    fechaRegistro: Date | null;
+    ciudadPaciente: string;
+    objetivoConsulta: string;
+  };
+  disabled?: boolean; 
   onRupChange: (rup: string) => void;
   onPatientSelect: (patient: Patient) => void;
 }
@@ -64,13 +65,11 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
   onPatientSelect,
   disabled
 }) => {
-  const { data: session } = useSession();
-  const [imagePreview, setImagePreview] = useState<string | null>(patientData.fotoUrl || null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(patientData);
+  const [warningOpen, setWarningOpen] = useState(false);
+  const { patients, loading, error, fetchPatients } = useFetchPatients();
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -85,94 +84,32 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  const fetchPatients = async () => {
-    if (!session?.user?.token) {
-      setError('No autorizado. Inicia sesión.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.user.token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error('Error al obtener los datos');
-
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setPatients(data);
-      } else {
-        console.error('Los datos recibidos no son un array:', data);
-        throw new Error('Formato de datos incorrecto');
-      }
-    } catch (error) {
-      console.error('Error completo:', error);
-      setError(error instanceof Error ? error.message : 'Error al cargar los pacientes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handlePatientSelect = (patient: Patient) => {
-    // Mapear los datos del paciente al formato esperado por patientData
-    const formattedPatient = {
-      ...patient,
-      detallepaciente: patient.detallepaciente || [{
-        objetivo: 'No especificado',
-        motivo: 'No especificado'
-      }]
+    const mappedPatientData = {
+      fotoUrl: '',
+      nombrePaciente: patient.nombre,
+      apellidoPaciente: patient.apellido,
+      rupPaciente: patient.rup,
+      fechaRegistro: new Date(patient.registro),
+      ciudadPaciente: patient.ciudad,
+      objetivoConsulta: patient.detallepaciente?.[0]?.objetivo || 'No especificado'
     };
-  
-  // Crear el objeto con el formato correcto de patientData
-  const mappedPatientData = {
-    fotoUrl: '', // Si tienes una URL de foto en los datos del paciente
-    nombrePaciente: formattedPatient.nombre,
-    apellidoPaciente: formattedPatient.apellido,
-    rupPaciente: formattedPatient.rup,
-    fechaRegistro: new Date(formattedPatient.registro),
-    ciudadPaciente: formattedPatient.ciudad,
-    objetivoConsulta: formattedPatient.detallepaciente[0]?.objetivo || 'No especificado'
-  };
-    // Llamar a onPatientSelect con los datos mapeados
-    onPatientSelect(formattedPatient);
-    onRupChange(formattedPatient.rup);
-    setModalOpen(false);
+
+    setSelectedPatient(mappedPatientData);
+    onPatientSelect(patient);
+    onRupChange(patient.rup);
+    setModalOpen(false); // Cerrar el modal después de seleccionar
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-    } catch (error) {
-      return 'Fecha no válida';
-    }
-  };
-
-  const filteredPatients = patients.filter(patient =>
+  const filteredPatients = patients.filter((patient: Patient) =>
     patient.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.rup.includes(searchTerm)
   );
+
+  const handleRupClick = () => {
+    setWarningOpen(true);
+  };
 
   return (
     <Paper
@@ -191,63 +128,31 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           Información del Paciente
         </Typography>
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-          <Box sx={{ position: 'relative' }}>
-            <Avatar
-              src={imagePreview || '/c.png'}
-              sx={{ 
-                width: 120, 
-                height: 120,
-                border: '3px solid #25aa80'
-              }}
-            />
-            <input
-              accept="image/*"
-              type="file"
-              hidden
-              id="photo-upload"
-              onChange={handleImageUpload}
-            />
-            <label htmlFor="photo-upload">
-              <IconButton
-                component="span"
-                sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  right: 0,
-                  backgroundColor: '#25aa80',
-                  '&:hover': { backgroundColor: '#1e8c66' },
-                }}
-              >
-                <PhotoCameraIcon sx={{ color: 'white' }} />
-              </IconButton>
-            </label>
-          </Box>
-        </Box>
-
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
             fullWidth
             label="RUP"
-            value={patientData.rupPaciente}
+            value={selectedPatient.rupPaciente}
             onChange={(e) => onRupChange(e.target.value)}
-            disabled={disabled} // Añadimos esta línea
+            disabled={disabled}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <BadgeIcon sx={{ color: '#25aa80' }} />
                 </InputAdornment>
               ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleRupClick}>
+                    <EditIcon sx={{ color: '#25aa80' }} />
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
             sx={{
+              borderRadius: '20px', // Borde redondeado
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                '&:hover fieldset': {
-                  borderColor: '#25aa80',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#25aa80',
-                },
+                borderRadius: '20px', // Asegúrate de que el borde del input también sea redondeado
               },
             }}
           />
@@ -255,7 +160,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Nombre"
-            value={patientData.nombrePaciente}
+            value={selectedPatient.nombrePaciente}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -265,8 +170,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
               readOnly: true,
             }}
             sx={{
+              borderRadius: '20px',
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                borderRadius: '20px',
               },
             }}
           />
@@ -274,7 +180,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Apellido"
-            value={patientData.apellidoPaciente}
+            value={selectedPatient.apellidoPaciente}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -284,8 +190,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
               readOnly: true,
             }}
             sx={{
+              borderRadius: '20px',
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                borderRadius: '20px',
               },
             }}
           />
@@ -293,7 +200,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Ciudad"
-            value={patientData.ciudadPaciente}
+            value={selectedPatient.ciudadPaciente}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -303,8 +210,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
               readOnly: true,
             }}
             sx={{
+              borderRadius: '20px',
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                borderRadius: '20px',
               },
             }}
           />
@@ -312,7 +220,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Fecha de Registro"
-            value={patientData.fechaRegistro ? new Date(patientData.fechaRegistro).toLocaleDateString() : ''}
+            value={selectedPatient.fechaRegistro ? new Date(selectedPatient.fechaRegistro).toLocaleDateString() : ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -322,8 +230,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
               readOnly: true,
             }}
             sx={{
+              borderRadius: '20px',
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                borderRadius: '20px',
               },
             }}
           />
@@ -333,7 +242,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
             multiline
             rows={4}
             label="Objetivo de la Consulta"
-            value={patientData.objetivoConsulta}
+            value={selectedPatient.objetivoConsulta}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -343,8 +252,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
               readOnly: true,
             }}
             sx={{
+              borderRadius: '20px',
               '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
+                borderRadius: '20px',
               },
             }}
           />
@@ -383,13 +293,19 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ mb: 2 }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
               ),
+            }}
+            sx={{
+              mb: 2,
+              borderRadius: '20px',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px',
+              },
             }}
           />
 
@@ -419,11 +335,11 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredPatients.map((patient) => (
+                  {filteredPatients.map((patient: Patient) => (
                     <TableRow
                       key={patient.rup}
                       hover
-                      onDoubleClick={() => handlePatientSelect(patient)}
+                      onDoubleClick={() => handlePatientSelect(patient)} // Al hacer doble clic, se selecciona el paciente
                       sx={{ 
                         cursor: 'pointer',
                         '&:hover': {
@@ -435,21 +351,46 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
                       <TableCell>{patient.nombre}</TableCell>
                       <TableCell>{patient.apellido}</TableCell>
                       <TableCell>{patient.ciudad}</TableCell>
-                      <TableCell>{formatDate(patient.registro)}</TableCell>
-                      <TableCell sx={{ 
-                        maxWidth: 200,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}>
-                          {patient.detallepaciente?.[0]?.objetivo || 'No especificado'}
-                          </TableCell>
+                      <TableCell>{new Date(patient.registro).toLocaleDateString()}</TableCell>
+                      <TableCell>{patient.detallepaciente?.[0]?.objetivo || 'No especificado'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
           )}
+        </Box>
+      </Modal>
+
+      {/* Modal de advertencia para el RUP */}
+      <Modal
+        open={warningOpen}
+        onClose={() => setWarningOpen(false)}
+        aria-labelledby="rup-warning-modal"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '80%',
+          maxWidth: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 2,
+        }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Advertencia
+          </Typography>
+          <Alert severity="warning" icon={<WarningIcon fontSize="inherit" />}>
+            No se recomienda modificar el RUP. Asegúrate de que los cambios sean necesarios.
+          </Alert>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <IconButton onClick={() => setWarningOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
       </Modal>
     </Paper>

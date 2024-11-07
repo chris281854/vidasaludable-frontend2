@@ -9,6 +9,7 @@ import { IconType } from 'react-icons';
 import Logo from '@/app/paciente/components/logo';
 import { FaListAlt } from "react-icons/fa";
 import { LiaListAlt } from "react-icons/lia";
+import { MdAssignmentAdd } from 'react-icons/md';
 
 interface SidebarItemProps {
   icon: IconType;
@@ -107,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, [expanded, onExpand]);
 
   const patientSubItems = [
-    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/paciente/" },
+    {icon: LiaListAlt, label: "Dashboard ", href: "/paciente/" },
 
     { icon: AiOutlinePlusCircle, label: "Agregar Paciente", href: "/paciente/add" },
     { icon: AiOutlineEdit, label: "Editar Paciente", href: "/paciente/edit" },
@@ -116,11 +117,20 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 
   const diagnosticoSubItems = [
-    {icon: LiaListAlt, label: "Consultar Dashboard ", href: "/diagnostico-clinico/" },
+    {icon: LiaListAlt, label: "Dashboard ", href: "/diagnostico-clinico/" },
     { icon: AiOutlinePlusCircle, label: "Agregar Diagnostico", href: "/diagnostico-clinico/add" },
     { icon: AiOutlineEdit, label: "Editar Diagnostico", href: "/diagnostico-clinico/edit" },
     { icon: AiOutlineDelete, label: "Eliminar Diagnostico", href: "/diagnostico-clinico/delete" },
   ];
+
+
+  const planesnutricionalesSubItems = [
+    {icon: LiaListAlt, label: "Dashboard ", href: "/planes-nutricionales" },
+    { icon: AiOutlinePlusCircle, label: "Asignar Plan", href: "/planes-nutricionales/add" },
+    { icon: AiOutlineEdit, label: "Modificar Plan", href: "/planes-nutricionales/edit" },
+    { icon: AiOutlineDelete, label: "Eliminar Plan", href: "/planes-nutricionales/delete" },
+  ];
+
 
 
   const handleLogout = async () => {
@@ -174,6 +184,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           subItems={diagnosticoSubItems}
           activeSubmenu={activeSubmenu}
           setActiveSubmenu={setActiveSubmenu}
+        />
+ 
+        <SidebarItem
+        icon={MdAssignmentAdd}
+         label="Planes Nutricionales" 
+         href="/planes-nutricionales" 
+         expanded={expanded}
+         subItems={planesnutricionalesSubItems}
+         activeSubmenu={activeSubmenu}
+         setActiveSubmenu={setActiveSubmenu}
+        
+        
         />
       </nav>
 

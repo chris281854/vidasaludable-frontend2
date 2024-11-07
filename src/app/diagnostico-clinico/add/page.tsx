@@ -53,7 +53,9 @@ interface Patient {
   nacimiento: string;
   registro: string;
   email: string;
-  detallePaciente?: DetallePaciente;
+  fotoUrl: string | null;
+  detallepaciente?: DetallePaciente | DetallePaciente[];
+  motivo: string | "";
 }
 
 interface FormData {
@@ -815,15 +817,25 @@ const NuevoDiagnostico = () => {
           {/* Columna lateral - Lado derecho */}
           <div className="col-span-4">
                     <PatientRightBar 
-            patientData={{
-              fotoUrl: "",
-              nombrePaciente: formData.nombrePaciente,
-              apellidoPaciente: formData.apellidoPaciente,
-              rupPaciente: formData.rupPaciente,
-              fechaRegistro: formData.fechaRegistro ? new Date(formData.fechaRegistro) : null,
-              ciudadPaciente: formData.ciudadPaciente,
-              objetivoConsulta: formData.objetivoConsulta,
-            }} 
+patientData={{
+  rup: formData.rupPaciente,
+  nombre: formData.nombrePaciente,
+  apellido: formData.apellidoPaciente,
+  sexo: '', // Add appropriate value
+  ciudad: formData.ciudadPaciente,
+  nacimiento: '', // Add appropriate value
+  registro: formData.fechaRegistro ? new Date(formData.fechaRegistro).toISOString() : '',
+  email: '', // Add appropriate value
+  fotoUrl: null,
+  detallepaciente: [], // Add appropriate value
+  motivo: '', // Add appropriate value
+  fechaRegistro: formData.fechaRegistro,
+  objetivoConsulta: formData.objetivoConsulta,
+  rupPaciente: formData.rupPaciente,
+  nombrePaciente: formData.nombrePaciente,
+  apellidoPaciente: formData.apellidoPaciente,
+  ciudadPaciente: formData.ciudadPaciente,
+}} 
             disabled={formData.firmaDigital}
             onRupChange={(rup: string) => {
               setFormData(prev => ({
@@ -831,7 +843,7 @@ const NuevoDiagnostico = () => {
                 rupPaciente: rup
               }));
             }}
-            onPatientSelect={(patient: Patient) => {
+            onPatientSelect={(patient) => {
               setFormData(prev => ({
                 ...prev,
                 nombrePaciente: patient.nombre,
@@ -841,7 +853,10 @@ const NuevoDiagnostico = () => {
                   ? new Date(patient.registro).toISOString().split('T')[0]  // Convertir a string YYYY-MM-DD
                   : null,
                 ciudadPaciente: patient.ciudad,
-                objetivoConsulta: patient.detallePaciente?.objetivo || 'No especificado'
+                objetivoConsulta: Array.isArray(patient.detallepaciente) ? (patient.detallepaciente[0]?.objetivo || 'No especificado') : (typeof patient.objetivoConsulta === 'string' ? patient.objetivoConsulta : 'No especificado'),
+                sexo: patient.sexo,
+                nacimiento: patient.nacimiento,
+                email: patient.email
               }));
             }}
           />

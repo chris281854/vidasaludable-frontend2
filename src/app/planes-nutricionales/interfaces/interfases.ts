@@ -1,9 +1,10 @@
+// interfaces.ts
 export interface DetallePaciente {
     objetivo: string;
     motivo: string;
-  }
-  
-  export interface Patient {
+}
+
+export interface Patient {
     rup: string;
     nombre: string;
     apellido: string;
@@ -12,7 +13,5 @@ export interface DetallePaciente {
     nacimiento: string;
     registro: string;
     email: string;
-    fechaRegistro: Date | null;  // Agregado este campo que faltaba
-    detallePaciente?: DetallePaciente;
-    motivo: string;
-  }
+    detallepaciente?: DetallePaciente[];
+}

@@ -14,6 +14,9 @@ const NutritionMenu: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<string[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+
 
   const user = {
     name: "Dr. María García",
@@ -45,6 +48,26 @@ const NutritionMenu: React.FC = () => {
       setNewMessage('');
     }
   };
+
+ 
+     
+
+    // const handleMenuItemClick = (href) => {
+    //     setLoading(true);
+    //     setProgress(0); // Reiniciar el progreso
+
+    //     // Simular carga
+    //     const interval = setInterval(() => {
+    //         setProgress((prev) => {
+    //             if (prev >= 100) {
+    //                 clearInterval(interval);
+    //                 setLoading(false);
+    //                 return 100;
+    //             }
+    //             return prev + 10; // Incrementar el progreso
+    //         });
+    //     }, 100); // Incrementar cada 100ms
+    // };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -124,18 +147,20 @@ const NutritionMenu: React.FC = () => {
 
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Acceso rápido</h2>
         <div className="flex flex-wrap -mx-4">
-          <MenuItem
-            href="/paciente"
-            icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
-            label="Pacientes"
-          />
+        
+        <MenuItem
+          href="/paciente"
+          icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+          label="Pacientes"
+        />
+       
           <MenuItem
             href="/diagnostico-clinico"
             icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>}
             label="Diagnóstico"
           />
           <MenuItem
-            href="/plan-nutricional"
+            href="/planes-nutricionales"
             icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
             label="Plan Nutricional"
           />
