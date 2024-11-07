@@ -1,6 +1,10 @@
-// src/components/SectionDivider.tsx
-import React from 'react';
 
+
+// src/components/SectionDivider.tsx
+
+
+import { Box, Typography } from '@mui/material';
+import React from 'react';
 interface SectionDividerProps {
     top: number;
     text: string; // Nueva propiedad para el texto
@@ -8,9 +12,11 @@ interface SectionDividerProps {
 
 const SectionDivider: React.FC<SectionDividerProps> = ({ top, text }) => {
     return (
-        <div className={`w-[858px] h-[33px] left-[24px] top-[${top}px] absolute bg-black rounded-[30px] flex items-center justify-center`}>
-            <span className="text-white">{text}</span> {/* Renderiza el texto en blanco */}
-        </div>
+        <Box bgcolor="black" borderRadius="20px" mt={5} mb={3} py={1} px={2}>
+            <Typography variant="subtitle1" color="white" fontWeight="bold">
+            {text}
+          </Typography> 
+        </Box>
     );
 };
 

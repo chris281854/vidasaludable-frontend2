@@ -5,6 +5,7 @@ import InformacionesSection from '../../add/components/InformacionesSection'
  
 import Observations from './Observations';
 import { FaInfoCircle, FaClipboardList, FaUtensils, FaClipboardCheck, FaFileExport } from 'react-icons/fa';
+import PlanificationSection from './PlanificationSection';
 
 const MainContainer: React.FC = () => {
     const [activeButtonIndex, setActiveButtonIndex] = useState<number | null>(null); // Estado para el índice del botón activo
@@ -17,7 +18,7 @@ const MainContainer: React.FC = () => {
   
   
     return (
-      <div className="h-[946px] relative p-6">
+      <div className="h-[960px] relative p-6">
         {/* <SectionHeader title="Planes nutricionales" /> */}
         <div className="flex justify-around gap-4">
           <ButtonCard
@@ -58,7 +59,7 @@ const MainContainer: React.FC = () => {
         </div>
 
         {activeSection === 'informacion' && <InformacionesSection/>}
-       {activeSection === 'planificacion' && <div>Contenido de Planificación</div>}
+       {activeSection === 'planificacion' && <PlanificationSection/>}
       {activeSection === 'comidas' && <div>Contenido de Comidas</div>}
       {activeSection === 'recomendacion' && <div>Contenido de Recomendación</div>}
       {activeSection === 'consultar' && <div>Contenido de Consultar</div>}

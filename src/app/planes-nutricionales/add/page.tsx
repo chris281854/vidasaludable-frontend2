@@ -8,6 +8,7 @@ import { useState } from "react";
 import MainContainer from "./components/MainContainer";
 import PatientRightBar from "@/app/planes-nutricionales/add/components/PatientRightBar";
 import { Patient as DiagnosticoPatient } from "@/app/planes-nutricionales/interfaces/interfases";
+import AditionalInfo from "./components/AditionalInfo";
 
 interface Patient extends DiagnosticoPatient {
     fechaRegistro: Date | null;
@@ -50,20 +51,20 @@ const AddPNutritionalPlan = () => {
                             <MainContainer /> 
                         </Paper>
                     </Box>
-                    <Box sx={{ flex: { xs: '1', lg: '1' } }}>
-                        <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-                            <Typography variant="h6" gutterBottom>
-                                Datos de paciente para asignacion de plan
-                            </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}> {/* Cambiar a columna para apilar los componentes */}
+                        <Box sx={{ flex: 1 }}> {/* Mantener el flex para que ocupe el espacio disponible */}
+                            {/* <Typography variant="h6" gutterBottom>
+                                Datos de paciente para asignación de plan
+                            </Typography> */}
                             <PatientRightBar 
                                 patientData={{
-                                fotoUrl: '',
-                                nombrePaciente: '',
-                                apellidoPaciente: '',
-                                rupPaciente: '',
-                                fechaRegistro: null,
-                                ciudadPaciente: '',
-                                objetivoConsulta: ''
+                                    fotoUrl: '',
+                                    nombrePaciente: '',
+                                    apellidoPaciente: '',
+                                    rupPaciente: '',
+                                    fechaRegistro: null,
+                                    ciudadPaciente: '',
+                                    objetivoConsulta: ''
                                 }}
                                 onRupChange={handleRupChange}
                                 onPatientSelect={(patient) => handlePatientSelect({
@@ -73,10 +74,15 @@ const AddPNutritionalPlan = () => {
                                     email: ""
                                 })}
                             />
-                        </Paper>
+                        </Box>
+
+                        <Box sx={{ flex: 1 }}> {/* Mantener el flex para que ocupe el espacio disponible */}
+                           
+                            <AditionalInfo /> {/* Asegúrate de que este sea el componente correcto */}
+                        </Box>
                     </Box>
-                </Box>
-            </Box>
+                    </Box>
+                    </Box>
         </PlanesNutricionalesLayout>
     );
 }
