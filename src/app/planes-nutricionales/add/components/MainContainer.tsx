@@ -18,7 +18,7 @@ const MainContainer: React.FC = () => {
   
   
     return (
-      <div className="h-[960px] relative p-6">
+      <div className="min-h-[946px] relative p-6">
         {/* <SectionHeader title="Planes nutricionales" /> */}
         <div className="flex justify-around gap-4">
           <ButtonCard
