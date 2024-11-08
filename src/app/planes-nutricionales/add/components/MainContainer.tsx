@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import SectionHeader from './SectionHeader';
 import ButtonCard from './ButtonCard';
 import InformacionesSection from '../../add/components/InformacionesSection'
+import RecomendacionesSection from './RecomendacionSection';
  
 import Observations from './Observations';
 import { FaInfoCircle, FaClipboardList, FaUtensils, FaClipboardCheck, FaFileExport } from 'react-icons/fa';
 import PlanificationSection from './PlanificationSection';
+import ComidaSection from './ComidaSection';
 
 const MainContainer: React.FC = () => {
     const [activeButtonIndex, setActiveButtonIndex] = useState<number | null>(null); // Estado para el índice del botón activo
@@ -30,14 +32,14 @@ const MainContainer: React.FC = () => {
           />
           <ButtonCard
             title="2. Planificación"
-            description="Planificación del plan nutricional para el paciente"
+            description="Planeación de plan nutricional para paciente"
             icon={<FaClipboardList />}
             onClick={() => handleSectionChange('planificacion', 1)}
             isActive={activeButtonIndex === 1} // Verifica si este botón es el activo
           />
           <ButtonCard
             title="3. Comidas"
-            description="Asignación de comidas en el plan nutricional"
+            description="Planes nutricionales  para pacientes"
             icon={<FaUtensils />}
             onClick={() => handleSectionChange('comidas', 2)}
             isActive={activeButtonIndex === 2} // Verifica si este botón es el activo
@@ -51,7 +53,7 @@ const MainContainer: React.FC = () => {
           />
           <ButtonCard
             title="5. Exportar"
-            description="Formatos de plan nutricional para compartir con el paciente"
+            description="Formatos para compartir con el paciente"
             icon={<FaFileExport />}
             onClick={() => handleSectionChange('exportar', 4)}
             isActive={activeButtonIndex === 4} // Verifica si este botón es el activo
@@ -60,8 +62,8 @@ const MainContainer: React.FC = () => {
 
         {activeSection === 'informacion' && <InformacionesSection/>}
        {activeSection === 'planificacion' && <PlanificationSection/>}
-      {activeSection === 'comidas' && <div>Contenido de Comidas</div>}
-      {activeSection === 'recomendacion' && <div>Contenido de Recomendación</div>}
+      {activeSection === 'comidas' && <ComidaSection/>}
+      {activeSection === 'recomendacion' && <RecomendacionesSection/>}
       {activeSection === 'consultar' && <div>Contenido de Consultar</div>}
 
     
