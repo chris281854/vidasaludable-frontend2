@@ -29,7 +29,7 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ title }) => {
           <span className="text-black font-extrabold text-lg">Bienvenido:</span>
           <span className="text-sm text-black font-extrabold">{username}</span>
           <span className="text-sm text-black font-extrabold">{role}</span>
-          <span className="text-sm text-black font-extrabold">{dateTime}</span>
+      {/* <span className="text-sm text-black font-extrabold">{dateTime}</span> */}
         {/* Título dinámico */}
          
         </div>

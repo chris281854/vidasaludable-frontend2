@@ -1,10 +1,10 @@
 import { Box } from "@mui/material";
 import SectionDivider from "./SectionDivider";
-import DesayunoSection from "./DesayunoSection";
-import MeriendaSection from "./MeriendaSection";
-import AlmuerzoSection from "./AlmuerzoSection";
-import CenasSection from "./CenasSection";
-import OtrasComidasSection from "./OtrasComidasSection";
+import DesayunoSection from "../UI/DesayunoSection";
+import MeriendaSection from "../UI/MeriendaSection";
+import AlmuerzoSection from "../UI/AlmuerzoSection";
+import CenasSection from "../UI/CenasSection";
+import OtrasComidasSection from "../UI/OtrasComidasSection";
 
 const ComidaSection = () => {
 

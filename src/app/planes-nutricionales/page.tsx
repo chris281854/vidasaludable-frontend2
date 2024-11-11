@@ -7,6 +7,7 @@ import FilterInput from "@/components/FilterButon";
 import { useState, useCallback } from "react";
 import RightBar from "./components/RightBar";
 import PlanesNutricionalesList from "./components/PlanesNutricionalesList";
+import { FormProvider } from "./context/FormContext";
 
 const PlanesNutricionales = () => {
 
@@ -22,6 +23,7 @@ const PlanesNutricionales = () => {
    }, [filterText]);
 
 return (
+    <FormProvider>
     <PlanesNutricionalesLayout>
         
         <Box sx={{ p: 4 }}>
@@ -68,6 +70,7 @@ return (
 
         </Box>
     </PlanesNutricionalesLayout>
+    </FormProvider>
 )
 
 }

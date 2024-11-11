@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 
 interface Elemento {
   nombre: string; // Nombre del elemento a evitar
@@ -13,15 +14,36 @@ interface Elemento {
 }
 
 const OtrasRecomendaciones = () => {
+  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
   const [elemento, setElemento] = useState<Elemento>({ nombre: '', frecuencia: '', cantidad: '' });
-  const [listaElementos, setListaElementos] = useState<Elemento[]>([]);
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const agregarElemento = () => {
     if (elemento.nombre && elemento.frecuencia && elemento.cantidad) {
-      setListaElementos([...listaElementos, elemento]);
-      setElemento({ nombre: '', frecuencia: '', cantidad: '' });
+      // Agrega el elemento al array de recomendaciones
+      setNutritionPlan(prev => ({
+        ...prev,
+        recomplan: [
+          ...prev.recomplan,
+          {
+            ...elemento,
+            alimentosEvitar: elemento.nombre,
+            frecEvitar: elemento.frecuencia,
+            cantidadEvitar: elemento.cantidad,
+            actividadFisica: '', // Add default or appropriate values for missing properties
+            frecActividadFisica: '',
+            consumoLiquido: '',
+            frecConsumoLiquido: '',
+            otrasRecomendaciones: ''
+          }
+        ]
+      }));
+      setElemento({ nombre: '', frecuencia: '', cantidad: '' }); // Reinicia el estado del elemento
+      setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
@@ -30,23 +52,31 @@ const OtrasRecomendaciones = () => {
   };
 
   const eliminarElemento = (index: number) => {
-    const nuevaLista = listaElementos.filter((_, i) => i !== index);
-    setListaElementos(nuevaLista);
+    const nuevaLista = nutritionPlan.recomplan.filter((_, i) => i !== index);
+    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    setSnackbar({ open: true, message: 'Elemento eliminado exitosamente', severity: 'success' });
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
-        <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Otras recomendaciones</Typography>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Otras Recomendaciones</Typography>
         <Box display="flex" justifyContent="space-around" mb={2}>
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: "olivedrab" }}>No hay elementos agregados.</li>
               ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.nombre}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.alimentosEvitar}</li>
                 ))
               )}
             </ul>
@@ -54,11 +84,11 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.frecuencia}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
                 ))
               )}
             </ul>
@@ -66,11 +96,11 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.cantidad}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
                 ))
               )}
             </ul>
@@ -78,10 +108,10 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                listaElementos.map((_, index) => (
+                nutritionPlan.recomplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarElemento(index)} color="error">
                       <FaDeleteLeft />
@@ -172,6 +202,13 @@ const OtrasRecomendaciones = () => {
           Agregar
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

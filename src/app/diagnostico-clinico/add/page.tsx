@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation";
 import HeaderUser from "../../../components/headeruser";
 import Sidebar from "../../../components/sidebar";
-import PatientSearchModal from "../../diagnostico-clinico/components/PatientInfoSidebar";
 import ConfirmacionFirmaDialog from "../components/ConfirmacionFirmaDialog";
 import { 
   TextField, 
@@ -828,7 +827,6 @@ patientData={{
   email: '', // Add appropriate value
   fotoUrl: null,
   detallepaciente: [], // Add appropriate value
-  motivo: '', // Add appropriate value
   fechaRegistro: formData.fechaRegistro,
   objetivoConsulta: formData.objetivoConsulta,
   rupPaciente: formData.rupPaciente,

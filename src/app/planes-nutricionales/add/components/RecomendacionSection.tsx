@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import SectionDivider from "./SectionDivider";
-import RecomendacionActividad from "./RecomendacionActividad";
-import ConsumoLiquidosSection from "./RecomendacionLiquidos";
-import AlimentosEvitarSection from "./AlimentosEvitar";
-import OtrasRecomendaciones from "./OtrasRecomendaciones";
+import RecomendacionActividad from "../UI/RecomendacionActividad";
+import ConsumoLiquidosSection from "../UI/RecomendacionLiquidos";
+import AlimentosEvitarSection from "../UI/AlimentosEvitar";
+import OtrasRecomendaciones from "../UI/OtrasRecomendaciones";
 
 const RecomendacionesSection = () => {
  

@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 
 interface Alimento {
   nombre: string;
@@ -13,15 +14,23 @@ interface Alimento {
 }
 
 const DesayunoSection = () => {
+  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
   const [alimento, setAlimento] = useState<Alimento>({ nombre: '', frecuencia: '', kilocalorias: '' });
-  const [listaAlimentos, setListaAlimentos] = useState<Alimento[]>([]);
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const agregarAlimento = () => {
     if (alimento.nombre && alimento.frecuencia && alimento.kilocalorias) {
-      setListaAlimentos([...listaAlimentos, alimento]);
-      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' });
+      // Agrega el alimento como objeto al array
+      setNutritionPlan((prev) => ({
+        ...prev,
+        desayuno: [...prev.desayuno, alimento] // Agrega el objeto alimento
+      }));
+      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' }); // Reinicia el estado del alimento
+      setSnackbar({ open: true, message: 'Alimento agregado exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
@@ -30,8 +39,16 @@ const DesayunoSection = () => {
   };
 
   const eliminarAlimento = (index: number) => {
-    const nuevaLista = listaAlimentos.filter((_, i) => i !== index);
-    setListaAlimentos(nuevaLista);
+    const nuevaLista = nutritionPlan.desayuno.filter((_, i) => i !== index);
+    setNutritionPlan((prev) => ({ ...prev, desayuno: nuevaLista })); // Actualiza la lista de desayuno
+    setSnackbar({ open: true, message: 'Alimento eliminado exitosamente', severity: 'success' });
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -40,33 +57,23 @@ const DesayunoSection = () => {
         <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Alimentos</Typography>
         <Box display="flex" justifyContent="space-around" mb={2}>
           <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Alimento</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Alimentos</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
-                <li key={index} style={{ marginBottom: '14px' }}>{alimento.nombre}</li>
-              ))}
-            </ul>
-          </Box>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
-                <li key={index} style={{ marginBottom: '14px' }}>{alimento.frecuencia}</li>
-              ))}
-            </ul>
-          </Box>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Kilocalorias</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
-                <li key={index} style={{ marginBottom: '14px' }}>{alimento.kilocalorias}</li>
-              ))}
+              {nutritionPlan.desayuno.length === 0 ? (
+                <li style={{ marginBottom: '14px', color: 'red' }}>No hay alimentos listados.</li>
+              ) : (
+                nutritionPlan.desayuno.map((alimento: Alimento, index: number) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>
+                    {`${alimento.nombre} - ${alimento.frecuencia} - ${alimento.kilocalorias} kcal`} {/* Muestra el alimento concatenado */}
+                  </li>
+                ))
+              )}
             </ul>
           </Box>
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((_, index) => (
+              {nutritionPlan.desayuno.map((_, index) => (
                 <li key={index} style={{ marginBottom: '-1px' }}>
                   <IconButton onClick={() => eliminarAlimento(index)} color="error">
                     <FaDeleteLeft />
@@ -129,7 +136,7 @@ const DesayunoSection = () => {
           onChange={(e) => setAlimento({ ...alimento, nombre: e.target.value })}
           label="Nombre del alimento"
           sx={{ width: '500px' }}
-          style={{ borderRadius: '50px', marginRight: '9px' }} // Redondear el input
+          style={{ borderRadius: '20px', marginRight: '9px' }} // Redondear el input
         />
         <TextField
           variant="outlined"
@@ -145,17 +152,25 @@ const DesayunoSection = () => {
           onChange={(e) => setAlimento({ ...alimento, kilocalorias: e.target.value })}
           label="Kilocalorias"
           sx={{ width: '150px' }}
+          style={{ borderRadius: '20px' }} // Redondear el input
         />
         <Button
           variant="contained"
           color="success"
           onClick={agregarAlimento}
           startIcon={<MdAddTask />}
-          style={{ width: '140px', height: '48px', borderRadius: '20px',marginLeft: '10px' }} // Redondear el botón
+          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón
         >
           Agregar
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

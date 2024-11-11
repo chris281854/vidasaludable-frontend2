@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 
 interface Actividad {
   nombre: string;
@@ -13,15 +14,34 @@ interface Actividad {
 }
 
 const RecomendacionSection = () => {
+  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
   const [actividad, setActividad] = useState<Actividad>({ nombre: '', frecuencia: '', duracion: '' });
-  const [listaActividades, setListaActividades] = useState<Actividad[]>([]);
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const agregarActividad = () => {
     if (actividad.nombre && actividad.frecuencia && actividad.duracion) {
-      setListaActividades([...listaActividades, actividad]);
-      setActividad({ nombre: '', frecuencia: '', duracion: '' });
+      // Agrega la actividad al array de recomendaciones
+      setNutritionPlan(prev => ({
+        ...prev,
+        recomplan: [
+          ...prev.recomplan,
+          {
+            actividadFisica: actividad.nombre,
+            frecActividadFisica: actividad.frecuencia,
+            duracion: actividad.duracion,
+            consumoLiquido: '', // Add default or appropriate values for missing properties
+            frecConsumoLiquido: '',
+            alimentosEvitar: '',
+            otrasRecomendaciones: ''
+          }
+        ]
+      }));
+      setActividad({ nombre: '', frecuencia: '', duracion: '' }); // Reinicia el estado de la actividad
+      setSnackbar({ open: true, message: 'Actividad agregada exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
@@ -30,8 +50,16 @@ const RecomendacionSection = () => {
   };
 
   const eliminarActividad = (index: number) => {
-    const nuevaLista = listaActividades.filter((_, i) => i !== index);
-    setListaActividades(nuevaLista);
+    const nuevaLista = nutritionPlan.recomplan.filter((_, i) => i !== index);
+    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    setSnackbar({ open: true, message: 'Actividad eliminada exitosamente', severity: 'success' });
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -42,11 +70,11 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Actividad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaActividades.length === 0 ? ( // Verifica si la lista está vacía
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: 'blue' }}>No hay actividades agregadas.</li>
               ) : (
-                listaActividades.map((actividad, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{actividad.nombre}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.actividadFisica}</li>
                 ))
               )}
             </ul>
@@ -54,11 +82,11 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaActividades.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaActividades.map((actividad, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{actividad.frecuencia}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
                 ))
               )}
             </ul>
@@ -66,11 +94,11 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Duración</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaActividades.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaActividades.map((actividad, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{actividad.duracion}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
                 ))
               )}
             </ul>
@@ -78,10 +106,10 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaActividades.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                listaActividades.map((_, index) => (
+                nutritionPlan.recomplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarActividad(index)} color="error">
                       <FaDeleteLeft />
@@ -167,11 +195,18 @@ const RecomendacionSection = () => {
           color="success"
           onClick={agregarActividad}
           startIcon={<MdAddTask />}
-          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón y añadir margen
+          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón
         >
           Agregar
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

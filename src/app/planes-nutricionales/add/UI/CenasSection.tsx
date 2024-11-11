@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 
 interface Alimento {
   nombre: string;
@@ -12,16 +13,24 @@ interface Alimento {
   kilocalorias: string;
 }
 
-const AlmuerzoSection = () => {
+const CenasSection = () => {
+  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
   const [alimento, setAlimento] = useState<Alimento>({ nombre: '', frecuencia: '', kilocalorias: '' });
-  const [listaAlimentos, setListaAlimentos] = useState<Alimento[]>([]);
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const agregarAlimento = () => {
     if (alimento.nombre && alimento.frecuencia && alimento.kilocalorias) {
-      setListaAlimentos([...listaAlimentos, alimento]);
-      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' });
+      // Agrega el alimento como objeto al array
+      setNutritionPlan(prev => ({
+        ...prev,
+        cena: [...prev.cena, alimento] // Asegúrate de que esto sea un objeto de tipo Alimento
+      }));
+      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' }); // Reinicia el estado del alimento
+      setSnackbar({ open: true, message: 'Alimento agregado exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
@@ -30,27 +39,37 @@ const AlmuerzoSection = () => {
   };
 
   const eliminarAlimento = (index: number) => {
-    const nuevaLista = listaAlimentos.filter((_, i) => i !== index);
-    setListaAlimentos(nuevaLista);
+    const nuevaLista = nutritionPlan.cena.filter((_, i) => i !== index);
+    setNutritionPlan(prev => ({ ...prev, cena: nuevaLista })); // Actualiza la lista de cenas
+    setSnackbar({ open: true, message: 'Alimento eliminado exitosamente', severity: 'success' });
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
-        <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Almuerzos</Typography>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Cenas</Typography>
         <Box display="flex" justifyContent="space-around" mb={2}>
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Alimento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
-                <li key={index} style={{ marginBottom: '14px' }}>{alimento.nombre}</li>
+              {nutritionPlan.cena.map((alimento, index) => (
+                <li key={index} style={{ marginBottom: '14px' }}>
+                  {`${alimento.nombre} - ${alimento.frecuencia} - ${alimento.kilocalorias} kcal`} {/* Muestra el alimento concatenado */}
+                </li>
               ))}
             </ul>
           </Box>
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
+              {nutritionPlan.cena.map((alimento, index) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.frecuencia}</li>
               ))}
             </ul>
@@ -58,7 +77,7 @@ const AlmuerzoSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Kilocalorias</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((alimento, index) => (
+              {nutritionPlan.cena.map((alimento, index) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.kilocalorias}</li>
               ))}
             </ul>
@@ -66,7 +85,7 @@ const AlmuerzoSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaAlimentos.map((_, index) => (
+              {nutritionPlan.cena.map((_, index) => (
                 <li key={index} style={{ marginBottom: '-1px' }}>
                   <IconButton onClick={() => eliminarAlimento(index)} color="error">
                     <FaDeleteLeft />
@@ -151,13 +170,20 @@ const AlmuerzoSection = () => {
           color="success"
           onClick={agregarAlimento}
           startIcon={<MdAddTask />}
-          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón y añadir margen
+          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón
         >
           Agregar
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
 
-export default AlmuerzoSection;
+export default CenasSection;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 
 interface Liquido {
   nombre: string; // Nombre del líquido
@@ -13,15 +14,34 @@ interface Liquido {
 }
 
 const ConsumoLiquidosSection = () => {
+  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
   const [liquido, setLiquido] = useState<Liquido>({ nombre: '', frecuencia: '', cantidad: '' });
-  const [listaLiquidos, setListaLiquidos] = useState<Liquido[]>([]);
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   const agregarLiquido = () => {
     if (liquido.nombre && liquido.frecuencia && liquido.cantidad) {
-      setListaLiquidos([...listaLiquidos, liquido]);
-      setLiquido({ nombre: '', frecuencia: '', cantidad: '' });
+      // Agrega el líquido al array de recomendaciones
+      setNutritionPlan(prev => ({
+        ...prev,
+        recomplan: [
+          ...prev.recomplan,
+          {
+            consumoLiquido: liquido.nombre,
+            frecConsumoLiquido: liquido.frecuencia,
+            actividadFisica: '',
+            frecActividadFisica: '',
+            alimentosEvitar: '',
+            otrasRecomendaciones: '',
+            
+          }
+        ]
+      }));
+      setLiquido({ nombre: '', frecuencia: '', cantidad: '' }); // Reinicia el estado del líquido
+      setSnackbar({ open: true, message: 'Líquido agregado exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
@@ -30,8 +50,16 @@ const ConsumoLiquidosSection = () => {
   };
 
   const eliminarLiquido = (index: number) => {
-    const nuevaLista = listaLiquidos.filter((_, i) => i !== index);
-    setListaLiquidos(nuevaLista);
+    const nuevaLista = nutritionPlan.recomplan.filter((_, i) => i !== index);
+    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    setSnackbar({ open: true, message: 'Líquido eliminado exitosamente', severity: 'success' });
+  };
+
+  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -42,11 +70,11 @@ const ConsumoLiquidosSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Líquido</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaLiquidos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: "orange" }}>No hay líquidos agregados.</li>
               ) : (
-                listaLiquidos.map((liquido, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{liquido.nombre}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.consumoLiquido}</li>
                 ))
               )}
             </ul>
@@ -54,11 +82,11 @@ const ConsumoLiquidosSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaLiquidos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaLiquidos.map((liquido, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{liquido.frecuencia}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecConsumoLiquido}</li>
                 ))
               )}
             </ul>
@@ -66,11 +94,11 @@ const ConsumoLiquidosSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaLiquidos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                listaLiquidos.map((liquido, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{liquido.cantidad}</li>
+                nutritionPlan.recomplan.map((recomendacion, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecConsumoLiquido}</li>
                 ))
               )}
             </ul>
@@ -78,10 +106,10 @@ const ConsumoLiquidosSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaLiquidos.length === 0 ? (
+              {nutritionPlan.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                listaLiquidos.map((_, index) => (
+                nutritionPlan.recomplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarLiquido(index)} color="error">
                       <FaDeleteLeft />
@@ -167,11 +195,18 @@ const ConsumoLiquidosSection = () => {
           color="success"
           onClick={agregarLiquido}
           startIcon={<MdAddTask />}
-          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón y añadir margen
+          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón
         >
           Agregar
         </Button>
       </Box>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
