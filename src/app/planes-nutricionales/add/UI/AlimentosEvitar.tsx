@@ -1,115 +1,114 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress } from '@mui/material';
-import { Search, Clear, Check } from '@mui/icons-material';
-import { FaSave } from 'react-icons/fa';
-import { GrClearOption } from "react-icons/gr";
-import { MdAddTask } from 'react-icons/md';
+import { TextField, Button, IconButton, Typography, Box, Snackbar, Alert, createTheme, ThemeProvider, CircularProgress } from '@mui/material';
 import { FaDeleteLeft } from 'react-icons/fa6';
+import { Search, Clear } from '@mui/icons-material'; // Importa los iconos necesarios
+import { useFormContext } from '../../context/FormContext';
+import { FaSave } from 'react-icons/fa';
+import { GrClearOption } from 'react-icons/gr';
 
 interface Elemento {
-  nombre: string; // Nombre del elemento a evitar
-  frecuencia: string; // Frecuencia de consumo
-  cantidad: string; // Cantidad a evitar
+  nombre: string;
+  frecuencia: string;
+  cantidad: string;
 }
 
-const AlimentosEvitarSection = () => {
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+const AlimentosEvitarSection: React.FC<{ index: number }> = ({ index }) => {
+  const { planesNutrionales, setNutritionPlan } = useFormContext();
   const [elemento, setElemento] = useState<Elemento>({ nombre: '', frecuencia: '', cantidad: '' });
-  const [listaElementos, setListaElementos] = useState<Elemento[]>([]);
-  const [buscar, setBuscar] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [buscar, setBuscar] = useState(''); // Estado para el campo de búsqueda
+  const [isLoading, setIsLoading] = useState(false); // Estado para el estado de carga
 
   const agregarElemento = () => {
-    if (elemento.nombre && elemento.frecuencia && elemento.cantidad) {
-      setListaElementos([...listaElementos, elemento]);
+    if (elemento.nombre) {
+      const updatedRecomplan = [...planesNutrionales.recomplan];
+      if (!updatedRecomplan[index]) {
+        updatedRecomplan[index] = {
+          actividadFisica: '',
+          frecActividadFisica: '',
+          consumoLiquido: '',
+          frecConsumoLiquido: '',
+          alimentosEvitar: '',
+          otrasRecomendaciones: '',
+        };
+      }
+      updatedRecomplan[index].alimentosEvitar = elemento.nombre; // Actualiza la propiedad alimentosEvitar
+      setNutritionPlan(prev => ({ ...prev, recomplan: updatedRecomplan })); // Usa el estado anterior
       setElemento({ nombre: '', frecuencia: '', cantidad: '' });
+      setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
+    } else {
+      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
+  };
+  const eliminarElemento = () => {
+    const updatedRecomplan = [...planesNutrionales.recomplan];
+    if (updatedRecomplan[index]) {
+      updatedRecomplan[index].alimentosEvitar = ''; // Elimina el alimento
+    }
+    setNutritionPlan({ ...planesNutrionales, recomplan: updatedRecomplan });
+    setSnackbar({ open: true, message: 'Elemento eliminado exitosamente', severity: 'success' });
   };
 
   const limpiarBuscar = () => {
-    setBuscar('');
-  };
-
-  const eliminarElemento = (index: number) => {
-    const nuevaLista = listaElementos.filter((_, i) => i !== index);
-    setListaElementos(nuevaLista);
+    setBuscar(''); // Limpia el campo de búsqueda
   };
 
   return (
-    <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
-      <Box className="p-4">
-        <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Elementos a Evitar</Typography>
-        <Box display="flex" justifyContent="space-around" mb={2}>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
-                <li style={{ marginBottom: '14px', color: "peru" }}>No hay elementos agregados.</li>
-              ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.nombre}</li>
-                ))
-              )}
-            </ul>
-          </Box>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
-                <li style={{ marginBottom: '14px' }}>-</li>
-              ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.frecuencia}</li>
-                ))
-              )}
-            </ul>
-          </Box>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
-                <li style={{ marginBottom: '14px' }}>-</li>
-              ) : (
-                listaElementos.map((elemento, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{elemento.cantidad}</li>
-                ))
-              )}
-            </ul>
-          </Box>
-          <Box width="25%">
-            <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
-            <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {listaElementos.length === 0 ? (
-                <li style={{ marginBottom: '-1px' }}>-</li>
-              ) : (
-                listaElementos.map((_, index) => (
-                  <li key={index} style={{ marginBottom: '-1px' }}>
-                    <IconButton onClick={() => eliminarElemento(index)} color="error">
-                      <FaDeleteLeft />
-                    </IconButton>
-                  </li>
-                ))
-              )}
-            </ul>
+    <ThemeProvider theme={theme}>
+      <Box className="max-w-5xl mx-auto p-3 bg-white rounded-xl shadow-md">
+        <Box className="p-6">
+          <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Elementos a Evitar</Typography>
+          <Box display="flex" justifyContent="space-around" mb={2}>
+            <Box width="25%">
+              <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
+              <ul style={{ padding: 0, listStyleType: 'none' }}>
+                {planesNutrionales.recomplan[index]?.alimentosEvitar ? (
+                  <li style={{ marginBottom: '14px' }}>{planesNutrionales.recomplan[index].alimentosEvitar}</li>
+                ) : (
+                  <li style={{ marginBottom: '14px', color: "peru" }}>No hay elementos agregados.</li>
+                )}
+              </ul>
+            </Box>
+            <Box width="25%">
+              <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
+              <ul style={{ padding: 0, listStyleType: 'none' }}>
+                <li style={{ marginBottom: '-1px' }}>
+                  <IconButton onClick={eliminarElemento} color="error">
+                    <FaDeleteLeft />
+                  </IconButton>
+                </li>
+              </ul>
+            </Box>
           </Box>
         </Box>
-      </Box>
-      <Box display="flex" justifyContent="flex-start" mb={4}>
-        <TextField
-          variant="outlined"
-          value={buscar}
-          onChange={(e) => setBuscar(e.target.value)}
-          label="Buscar elemento"
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <IconButton>
-                <Search />
-              </IconButton>
-            ),
-            style: { borderRadius: '20px' },
-          }}
-          sx={{ marginRight: 2 }} // Espacio entre el input y los botones
-        />
+        <Box display="flex" justifyContent="flex-start" mb={4}>
+          <TextField
+            variant="outlined"
+            value={buscar}
+            onChange={(e) => setBuscar(e.target.value)}
+            label="Buscar elemento"
+            InputProps={{
+              startAdornment: (
+                <IconButton>
+                  <Search />
+                </IconButton>
+              ),
+              style: { borderRadius: '20px' },
+            }}
+            sx={{ width: '500px', marginRight: '10px' }} // Espacio entre el input y el botón
+          />
+         
         <Button
           type="submit"
           variant="contained"
@@ -138,41 +137,31 @@ const AlimentosEvitarSection = () => {
           Limpiar
         </Button>
       </Box>
-      <Box display="flex" justifyContent="flex-start" mb={4}>
-        <TextField
-          variant="outlined"
-          value={elemento.nombre}
-          onChange={(e) => setElemento({ ...elemento, nombre: e.target.value })}
-          label="Nombre del elemento"
-          sx={{ width: '500px' }}
-          style={{ borderRadius: '50px', marginRight: '9px' }} // Redondear el input
-        />
-        <TextField
-          variant="outlined"
-          value={elemento.frecuencia}
-          onChange={(e) => setElemento({ ...elemento, frecuencia: e.target.value })}
-          label="Frecuencia de consumo"
-          sx={{ width: '210px' }}
-          style={{ borderRadius: '20px', marginRight: '8px' }} // Redondear el input
-        />
-        <TextField
-          variant="outlined"
-          value={elemento.cantidad}
-          onChange={(e) => setElemento({ ...elemento, cantidad: e.target.value })}
-          label="Cantidad"
-          sx={{ width: '150px' }}
-        />
-        <Button
-          variant="contained"
-          color="success"
-          onClick={agregarElemento}
-          startIcon={<MdAddTask />}
-          style={{ width: '140px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Redondear el botón y añadir margen
-        >
-          Agregar
-        </Button>
+         <Box display="flex" justifyContent="flex-start" mb={4}>
+          <TextField
+            variant="outlined"
+            value={elemento.nombre}
+            onChange={(e) => setElemento({ ...elemento, nombre: e.target.value })}
+            label="Nombre del elemento"
+            sx={{ width: '690px' }}
+            style={{ borderRadius: '50px', marginRight: '9px' }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={agregarElemento}
+            style={{ width: '180px', height: '48px', borderRadius: '20px', marginLeft: '10px' }} // Asegúrate de que el botón sea más ancho
+          >
+            Agregar
+          </Button>
+        </Box>
+        <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Box>
-    </Box>
+    </ThemeProvider>
   );
 };
 

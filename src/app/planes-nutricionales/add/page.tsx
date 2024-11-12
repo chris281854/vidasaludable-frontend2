@@ -15,7 +15,7 @@ interface Patient extends DiagnosticoPatient {
     sexo: string;
 }
 
-const AddPNutritionalPlan = () => {
+const AddPNutritionalPlan:  React.FC = () => {
     const [formData, setFormData] = useState({
         nombrePaciente: '',
         apellidoPaciente: '',

@@ -5,16 +5,18 @@ interface Alimento {
   nombre: string;
   frecuencia: string;
   kilocalorias: string;
-  firmadoDigital: boolean;
+  
 }
 
 interface recomendaciones {
+   
   actividadFisica: string;
   frecActividadFisica: string;
   consumoLiquido: string;
   frecConsumoLiquido: string;
   alimentosEvitar: string;
   otrasRecomendaciones: string;
+  userName: string;
 }
 
 

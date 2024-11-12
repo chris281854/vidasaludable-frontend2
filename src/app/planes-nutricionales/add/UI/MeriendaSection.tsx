@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert, ThemeProvider, createTheme } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import { useFormContext } from '../../context/FormContext';
 
 interface Alimento {
   nombre: string;
@@ -13,19 +14,35 @@ interface Alimento {
   kilocalorias: string;
 }
 
-const MeriendaSection = () => {
-  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+const MeriendaSection: React.FC = () => {
+
+  const {
+    planesNutrionales,
+    setNutritionPlan,
+  } = useFormContext(); // Usa el contexto
+
   const [alimento, setAlimento] = useState<Alimento>({ nombre: '', frecuencia: '', kilocalorias: '' });
   const [buscar, setBuscar] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [isLoading, setIsLoading] = useState(false);
 
   const agregarAlimento = () => {
     if (alimento.nombre && alimento.frecuencia && alimento.kilocalorias) {
       // Agrega el alimento como objeto al array
-      setNutritionPlan(prev => ({
+      setNutritionPlan((prev) => ({
         ...prev,
-        merienda: [...prev.merienda, alimento] // Asegúrate de que esto sea un objeto de tipo Alimento
+        merienda: [...prev.merienda, {...alimento}] // Asegúrate de que esto sea un objeto de tipo Alimento
       }));
       setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' }); // Reinicia el estado del alimento
       setSnackbar({ open: true, message: 'Alimento agregado exitosamente', severity: 'success' });
@@ -39,8 +56,10 @@ const MeriendaSection = () => {
   };
 
   const eliminarAlimento = (index: number) => {
-    const nuevaLista = nutritionPlan.merienda.filter((_, i) => i !== index);
-    setNutritionPlan(prev => ({ ...prev, merienda: nuevaLista })); // Actualiza la lista de meriendas
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.merienda.filter((_, i) => i !== index);
+      return { ...prev, merienda: nuevaLista };
+    });
     setSnackbar({ open: true, message: 'Alimento eliminado exitosamente', severity: 'success' });
   };
 
@@ -52,6 +71,7 @@ const MeriendaSection = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
         <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Meriendas</Typography>
@@ -59,10 +79,10 @@ const MeriendaSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Alimento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.merienda.length === 0 ? (
+              {planesNutrionales.merienda.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: 'green' }}>No hay alimentos listados.</li>
               ):(
-              nutritionPlan.merienda.map((alimento, index) => (
+                planesNutrionales.merienda.map((alimento: Alimento, index: number) => (
                 <li key={index} style={{ marginBottom: '14px' }}>
                   {`${alimento.nombre} - ${alimento.frecuencia} - ${alimento.kilocalorias} kcal`} {/* Muestra el alimento concatenado */}
                 </li>
@@ -73,7 +93,7 @@ const MeriendaSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.merienda.map((alimento, index) => (
+              {planesNutrionales.merienda.map((alimento: Alimento, index: number) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.frecuencia}</li>
               ))}
             </ul>
@@ -81,7 +101,7 @@ const MeriendaSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Kilocalorias</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.merienda.map((alimento, index) => (
+              {planesNutrionales.merienda.map((alimento: Alimento, index: number) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.kilocalorias}</li>
               ))}
             </ul>
@@ -89,7 +109,7 @@ const MeriendaSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.merienda.map((_, index) => (
+              {planesNutrionales.merienda.map((_, index) => (
                 <li key={index} style={{ marginBottom: '-1px' }}>
                   <IconButton onClick={() => eliminarAlimento(index)} color="error">
                     <FaDeleteLeft />
@@ -187,6 +207,7 @@ const MeriendaSection = () => {
         </Alert>
       </Snackbar>
     </Box>
+    </ThemeProvider>
   );
 };
 

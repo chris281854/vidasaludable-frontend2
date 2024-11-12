@@ -102,6 +102,7 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   console.log('Estado del detallepaciente:', nutritionPlan); // Debugging
+    console.log('FormProvider montado');
 
   return (
     <FormContext.Provider value={{ planesNutrionales: nutritionPlan, setNutritionPlan, handleInputChange, errors, handleClear }}>

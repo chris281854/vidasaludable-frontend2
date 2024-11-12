@@ -77,8 +77,8 @@ const AddPatientForm: React.FC = () => {
         <form onSubmit={handleFormSubmit} style={{ width: '100%', maxWidth: '1300px', margin: '0 auto' }}>
           
           {/* Sección de Recopilación Base del Paciente */}
-          <Box className="w-full max-w-[1430px] p-5 rounded-lg">
-            <SectionDivider top={0} text={'Recopilación base del paciente>'} />
+          <Box className="w-full max-w-[1430px] rounded-lg">
+            <SectionDivider top={0} text={'Recopilación base del paciente'} />
           </Box>
           
           <Grid container spacing={3} mb={3}>
@@ -115,10 +115,8 @@ const AddPatientForm: React.FC = () => {
           </Grid>
   
           {/* Sección de Historial Personal del Paciente */}
-          <Box bgcolor="black" borderRadius="20px" mb={3} py={1} px={2}>
-            <Typography variant="subtitle1" color="white" fontWeight="bold">
-              Historial personal del paciente
-            </Typography>
+          <Box className="w-full max-w-[1430px]  rounded-lg">
+            <SectionDivider top={0} text={'Historial Personal del Paciente'} />
           </Box>
   
           <Grid container spacing={3} mb={3}>

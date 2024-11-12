@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert, createTheme, ThemeProvider } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import { useFormContext } from '../../context/FormContext';
 
 interface Actividad {
   nombre: string;
@@ -13,8 +14,26 @@ interface Actividad {
   duracion: string; // Cambiado de kilocalorias a duracion
 }
 
-const RecomendacionSection = () => {
-  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+
+const RecomendacionSection: React.FC = () => {
+
+  const {
+    planesNutrionales,
+    setNutritionPlan,
+  } = useFormContext(); // Usa el contexto
+
+  
   const [actividad, setActividad] = useState<Actividad>({ nombre: '', frecuencia: '', duracion: '' });
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +69,7 @@ const RecomendacionSection = () => {
   };
 
   const eliminarActividad = (index: number) => {
-    const nuevaLista = nutritionPlan.recomplan.filter((_, i) => i !== index);
+    const nuevaLista = planesNutrionales.recomplan.filter((_, i) => i !== index);
     setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
     setSnackbar({ open: true, message: 'Actividad eliminada exitosamente', severity: 'success' });
   };
@@ -63,6 +82,8 @@ const RecomendacionSection = () => {
   };
 
   return (
+
+    <ThemeProvider theme={theme}>
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
         <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Actividades Físicas</Typography>
@@ -70,10 +91,10 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Actividad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: 'blue' }}>No hay actividades agregadas.</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.actividadFisica}</li>
                 ))
               )}
@@ -82,10 +103,10 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
                 ))
               )}
@@ -94,10 +115,10 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Duración</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
                 ))
               )}
@@ -106,10 +127,10 @@ const RecomendacionSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((_, index) => (
+                planesNutrionales.recomplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarActividad(index)} color="error">
                       <FaDeleteLeft />
@@ -208,6 +229,7 @@ const RecomendacionSection = () => {
         </Alert>
       </Snackbar>
     </Box>
+    </ThemeProvider>
   );
 };
 

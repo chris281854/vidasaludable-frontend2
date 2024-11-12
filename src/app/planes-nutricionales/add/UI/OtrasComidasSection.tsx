@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert, ThemeProvider, createTheme } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import { useFormContext } from '../../context/FormContext';
 
 interface Alimento {
   nombre: string;
@@ -13,34 +14,57 @@ interface Alimento {
   kilocalorias: string;
 }
 
-const OtrasComidasSection = () => {
-  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+
+
+const OtrasComidasSection: React.FC = () => {
+
+  const {
+    planesNutrionales,
+    setNutritionPlan,
+  } = useFormContext(); // Usa el contexto
+
+  
   const [alimento, setAlimento] = useState<Alimento>({ nombre: '', frecuencia: '', kilocalorias: '' });
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
+  
   const agregarAlimento = () => {
     if (alimento.nombre && alimento.frecuencia && alimento.kilocalorias) {
-      // Agrega el alimento como objeto al array
-      setNutritionPlan(prev => ({
+      setNutritionPlan((prev) => ({
         ...prev,
-        otrasComidas: [...prev.otrasComidas, alimento] // Asegúrate de que esto sea un objeto de tipo Alimento
+        otrasComidas: [...prev.otrasComidas, { ...alimento }]
       }));
-      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' }); // Reinicia el estado del alimento
+      setAlimento({ nombre: '', frecuencia: '', kilocalorias: '' });
       setSnackbar({ open: true, message: 'Alimento agregado exitosamente', severity: 'success' });
     } else {
       setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
 
+
   const limpiarBuscar = () => {
     setBuscar('');
   };
 
   const eliminarAlimento = (index: number) => {
-    const nuevaLista = nutritionPlan.otrasComidas.filter((_, i) => i !== index);
-    setNutritionPlan(prev => ({ ...prev, otrasComidas: nuevaLista })); // Actualiza la lista de otras comidas
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.otrasComidas.filter((_, i) => i !== index);
+      return { ...prev, otrasComidas: nuevaLista };
+    });
     setSnackbar({ open: true, message: 'Alimento eliminado exitosamente', severity: 'success' });
   };
 
@@ -52,6 +76,7 @@ const OtrasComidasSection = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
         <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Otras Comidas</Typography>
@@ -59,10 +84,10 @@ const OtrasComidasSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Alimento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.otrasComidas.length === 0 ? (
+              {planesNutrionales.otrasComidas.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: 'blueviolet' }}>No hay alimentos listados.</li>
               ) : (
-                nutritionPlan.otrasComidas.map((alimento, index) => (
+                planesNutrionales.otrasComidas.map((alimento: Alimento, index: number) => (
                   <li key={index} style={{ marginBottom: '14px' }}>
                     {`${alimento.nombre} - ${alimento.frecuencia} - ${alimento.kilocalorias} kcal`} {/* Muestra el alimento concatenado */}
                   </li>
@@ -73,7 +98,7 @@ const OtrasComidasSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.otrasComidas.map((alimento, index) => (
+              {planesNutrionales.otrasComidas.map((alimento: Alimento, index: number) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.frecuencia}</li>
               ))}
             </ul>
@@ -81,7 +106,7 @@ const OtrasComidasSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Kilocalorias</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.otrasComidas.map((alimento, index) => (
+              {planesNutrionales.otrasComidas.map((alimento: Alimento, index: number) => (
                 <li key={index} style={{ marginBottom: '14px' }}>{alimento.kilocalorias}</li>
               ))}
             </ul>
@@ -89,7 +114,7 @@ const OtrasComidasSection = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.otrasComidas.map((_, index) => (
+              {planesNutrionales.otrasComidas.map((_, index) => (
                 <li key={index} style={{ marginBottom: '-1px' }}>
                   <IconButton onClick={() => eliminarAlimento(index)} color="error">
                     <FaDeleteLeft />
@@ -187,6 +212,7 @@ const OtrasComidasSection = () => {
         </Alert>
       </Snackbar>
     </Box>
+    </ThemeProvider>
   );
 };
 
