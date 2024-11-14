@@ -27,7 +27,7 @@ const theme = createTheme({
 });
 
 
-const ConsumoLiquidosSection: React.FC = () => {
+const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
 
   const {
     planesNutrionales,
@@ -41,18 +41,20 @@ const ConsumoLiquidosSection: React.FC = () => {
 
   const agregarLiquido = () => {
     if (liquido.nombre && liquido.frecuencia && liquido.cantidad) {
+  
+       // Crea una copia del array de recomendaciones
+       const updatedRecomplan = [...planesNutrionales.recomplan];
+   
       // Agrega el líquido al array de recomendaciones
       setNutritionPlan(prev => ({
         ...prev,
         recomplan: [
           ...prev.recomplan,
           {
+            ...prev.recomplan[index],
             consumoLiquido: liquido.nombre,
             frecConsumoLiquido: liquido.frecuencia,
-            actividadFisica: '',
-            frecActividadFisica: '',
-            alimentosEvitar: '',
-            otrasRecomendaciones: '',
+            
             
           }
         ]

@@ -32,23 +32,21 @@ const AlimentosEvitarSection: React.FC<{ index: number }> = ({ index }) => {
 
   const agregarElemento = () => {
     if (elemento.nombre) {
-      const updatedRecomplan = [...planesNutrionales.recomplan];
-      if (!updatedRecomplan[index]) {
-        updatedRecomplan[index] = {
-          actividadFisica: '',
-          frecActividadFisica: '',
-          consumoLiquido: '',
-          frecConsumoLiquido: '',
-          alimentosEvitar: '',
-          otrasRecomendaciones: '',
-        };
-      }
-      updatedRecomplan[index].alimentosEvitar = elemento.nombre; // Actualiza la propiedad alimentosEvitar
-      setNutritionPlan(prev => ({ ...prev, recomplan: updatedRecomplan })); // Usa el estado anterior
+      
+       setNutritionPlan(prev => ({
+       ...prev,
+        recomplan: [
+           ...prev.recomplan,
+          {
+          ...prev.recomplan[index],
+            alimentosEvitar: elemento.nombre,
+          }
+        ]
+      }));
       setElemento({ nombre: '', frecuencia: '', cantidad: '' });
       setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
-    } else {
-      setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
+    }else {
+      setSnackbar({ open: true, message: 'Por favor ingrese un elemento', severity: 'error' });
     }
   };
   const eliminarElemento = () => {

@@ -26,7 +26,7 @@ const theme = createTheme({
 });
 
 
-const RecomendacionSection: React.FC = () => {
+const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
 
   const {
     planesNutrionales,
@@ -47,14 +47,14 @@ const RecomendacionSection: React.FC = () => {
         recomplan: [
           ...prev.recomplan,
           {
+        
+              ...prev.recomplan[index],
             actividadFisica: actividad.nombre,
             frecActividadFisica: actividad.frecuencia,
             duracion: actividad.duracion,
-            consumoLiquido: '', // Add default or appropriate values for missing properties
-            frecConsumoLiquido: '',
-            alimentosEvitar: '',
-            otrasRecomendaciones: ''
-          }
+            }
+       
+          
         ]
       }));
       setActividad({ nombre: '', frecuencia: '', duracion: '' }); // Reinicia el estado de la actividad

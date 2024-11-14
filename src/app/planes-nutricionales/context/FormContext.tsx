@@ -6,14 +6,12 @@ interface Alimento {
   kilocalorias: string;
 }
 
-interface Recomendaciones {
-  actividadFisica: string;
-  frecActividadFisica: string;
-  consumoLiquido: string;
-  frecConsumoLiquido: string;
-  alimentosEvitar: string;
-  otrasRecomendaciones: string;
+interface Recomendacion {
+  nombre: string;
+  frecuencia: string;
+  cantidad: string;
 }
+
 
 interface PlanesNutricionales {
   rup: string;
@@ -34,7 +32,10 @@ interface PlanesNutricionales {
   cena: Alimento[];
   otrasComidas: Alimento[];
   merienda: Alimento[];
-  recomplan: Recomendaciones[];
+  recomactivida: Recomendacion[];
+  recomalimentos: Recomendacion[];
+  recomliquido: Recomendacion[];
+  recorecomotrasmplan: Recomendacion[];
 }
 
 interface FormContextType {
@@ -67,7 +68,10 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     cena: [],
     otrasComidas: [],
     merienda: [],
-    recomplan: []
+    recomactivida: [],
+    recomalimentos: [],
+    recomliquido: [],
+    recorecomotrasmplan: []
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({}); // Estado para errores
@@ -97,7 +101,10 @@ export const FormProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       cena: [],
       otrasComidas: [],
       merienda: [],
-      recomplan: []
+      recomactivida: [],
+      recomalimentos: [],
+      recomliquido: [],
+      recorecomotrasmplan: [],
     });
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation";
 import { 
@@ -13,16 +13,19 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
-  Typography
+  Typography,
+  Box,
+  Modal
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
-import { format } from 'date-fns';
 import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import ConfirmacionFirmaDialog from "@/app/diagnostico-clinico/components/ConfirmacionFirmaDialog";
+import { LockIcon } from "lucide-react";
 
 const MedicalSignatureComponent = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const { nutritionPlan, setNutritionPlan, errors, handleInputChange, handleSubmit, handleClear } = useNutritionPlan(); // Usa el hook
+  const { nutritionPlan, setNutritionPlan, errors, handleInputChange, handleSubmit, handleClear } = useNutritionPlan(prev => ({ ...prev })); // Usa el hook
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -35,6 +38,12 @@ const MedicalSignatureComponent = () => {
     severity: 'success',
     duration: 6000,
   });
+
+  // Estados para los modales
+  const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [openPasswordModal, setOpenPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [openFirmaDialog, setOpenFirmaDialog] = useState(false); // Estado para el nuevo modal
 
   const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({
@@ -119,6 +128,77 @@ const MedicalSignatureComponent = () => {
     showNotification('Formulario limpiado exitosamente', 'success');
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // Validar campos antes de abrir el modal
+      if (!nutritionPlan.codigoMedico || !nutritionPlan.nombreMedico || !nutritionPlan.especialidad) {
+        showNotification('Por favor complete todos los campos requeridos', 'warning');
+        setNutritionPlan(prev => ({ ...prev, firmadoDigital: false })); // Desmarca el checkbox
+        return;
+      }
+      setOpenFirmaDialog(true); // Abre el nuevo modal de confirmación de firma
+    } else {
+      setNutritionPlan(prev => ({ ...prev, firmadoDigital: false })); // Desmarca el checkbox
+    }
+  };
+
+  const handleConfirmFirma = () => {
+    setOpenFirmaDialog(false);
+    setOpenPasswordModal(true); // Abre el modal para solicitar la contraseña
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!password) {
+      showNotification('La contraseña es requerida', 'warning');
+      return;
+    }
+
+    if (!session?.user?.name) {
+      showNotification('No se encontró información del usuario', 'warning');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token}`,
+        },
+        body: JSON.stringify({ 
+          name: session.user.name,
+          password: password 
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al verificar la contraseña');
+      }
+
+      const data = await response.json();
+      
+      if (data) {
+        setNutritionPlan(prev => ({
+          ...prev,
+          firmandoDigital: true,
+          firmadoPor: session?.user?.name || '',
+          fechaFirma: new Date().toISOString()
+        }));
+        setOpenPasswordModal(false);
+        setPassword('');
+        showNotification('Firma digital realizada con éxito', 'success');
+      } else {
+        showNotification('Contraseña incorrecta', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('La contraseña ingresada no es correcta', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-white">
       <div className="flex-grow">
@@ -161,7 +241,7 @@ const MedicalSignatureComponent = () => {
                     fullWidth
                     label="Médico"
                     variant="outlined"
-                  //  value={`${nutritionPlan.nombreMedico} ${nutritionPlan.apellidoMedico}`.trim()}
+                    value={`${nutritionPlan.nombreMedico} ${nutritionPlan.apellidoMedico}`.trim()}
                     sx={{ backgroundColor: 'white', borderRadius: '12px' }}
                     disabled
                   />
@@ -169,7 +249,7 @@ const MedicalSignatureComponent = () => {
                     fullWidth
                     label="Especialidad"
                     variant="outlined"
-                  //  value={nutritionPlan.especialidad}
+                    value={nutritionPlan.especialidad}
                     sx={{ backgroundColor: 'white', borderRadius: '12px' }}
                     disabled
                   />
@@ -182,12 +262,13 @@ const MedicalSignatureComponent = () => {
                   control={
                     <Checkbox 
                       checked={nutritionPlan.firmadoDigital}
-                      onChange={(e) => setNutritionPlan(prev => ({ ...prev, firmaDigital: e.target.checked }))}
+                      onChange={handleCheckboxChange} // Cambia el manejador aquí
                       sx={{ 
                         '&.Mui-checked': { 
                           color: '#25aa80' 
                         }
                       }}
+                      disabled={nutritionPlan.firmadoDigital} // Deshabilitar si ya está firmado
                     />
                   }
                   label={
@@ -197,6 +278,15 @@ const MedicalSignatureComponent = () => {
                   }
                 />
               </div>
+
+              {/* Sección de firma */}
+              {nutritionPlan.firmadoDigital && (
+                <Box sx={{ marginTop: 2, padding: 2, border: '1px solid #25aa80', borderRadius: '8px', backgroundColor: '#f0f8f0' }}>
+                  <Typography variant="body1">
+                    El plan nutricional ha sido firmado por el usuario <strong>{session?.user?.name}</strong> en fecha <strong>{new Date(nutritionPlan.fechaFirma).toLocaleDateString()}</strong> y hora <strong>{new Date(nutritionPlan.fechaFirma).toLocaleTimeString()}</strong>.
+                  </Typography>
+                </Box>
+              )}
 
               {/* Botones de acción */}
               <div className="flex justify-between gap-4 mt-8">
@@ -241,6 +331,53 @@ const MedicalSignatureComponent = () => {
           </Snackbar>
         </div>
       </div>
+
+      {/* Modal de Confirmación de Firma */}
+      <ConfirmacionFirmaDialog 
+        open={openFirmaDialog} 
+        onClose={() => setOpenFirmaDialog(false)} 
+        onConfirm={handleConfirmFirma} 
+      />
+
+      {/* Modal para Solicitar Contraseña */}
+      <Modal open={openPasswordModal} onClose={() => setOpenPasswordModal(false)}>
+        <Box sx={{ 
+          position: 'absolute', 
+          top: '50%', 
+          left: '50%', 
+          transform: 'translate(-50%, -50%)', 
+          width: 600, // Aumentar el ancho del modal
+          bgcolor: 'background.paper', 
+          boxShadow: 24, 
+          p: 4,
+          borderRadius: 2
+        }}>
+          <Typography variant="h5" align="center" color="primary">Ingrese su Contraseña</Typography>
+          <TextField
+            type="password"
+            label="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+            InputProps={{
+              startAdornment: (
+                <Box sx={{ marginRight: 1 }}>
+                  <LockIcon />
+                </Box>
+              ),
+            }}
+          />
+          <Box display="flex" justifyContent="space-between">
+            <Button variant="contained" color="primary" onClick={handlePasswordSubmit}>
+              Enviar
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={() => setOpenPasswordModal(false)}>
+              Cancelar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </div>
   );
 }

@@ -2,30 +2,25 @@
 import { useState } from 'react';
 
 interface Alimento {
+  rup: string;
+  idPlan: number;
   nombre: string;
   frecuencia: string;
   kilocalorias: string;
-  
-}
-
-interface recomendaciones {
-   
-  actividadFisica: string;
-  frecActividadFisica: string;
-  consumoLiquido: string;
-  frecConsumoLiquido: string;
-  alimentosEvitar: string;
-  otrasRecomendaciones: string;
   userName: string;
 }
 
-
-interface medico {
-  codigoMedico: number;
-   
+interface Recomendacion {
+  nombre: string;
+  frecuencia: string;
+  cantidad: string;
 }
 
+
 interface NutritionPlan {
+  nombreMedico: string;
+  apellidoMedico: string;
+  especialidad: string;
   rup: string;
   objetivoPlan: string;
   funcionIntestinal: string;
@@ -36,21 +31,27 @@ interface NutritionPlan {
   ingestaCalorica: string;
   otrasInformaciones: string;
   observacionesGenerales: string;
-  proximaRevision: string;
-  registro: string;
+  proximaRevision: string; // Fecha en formato ISO string
+  registro: string;        // Fecha en formato ISO string
   userName: string;
   desayuno: Alimento[];
   comida: Alimento[];
-  cena:Alimento[];
+  cena: Alimento[];
   otrasComidas: Alimento[];
-  merienda: Alimento[];
-  recomplan: recomendaciones[],
   codigoMedico: number;
-  firmadoDigital: boolean
+  firmadoDigital: boolean;
+  fechaFirma: string;
+  recomactivida: Recomendacion[];
+  recomalimentos: Recomendacion[];
+  recomliquido: Recomendacion[];
+  recorecomotrasmplan: Recomendacion[];
 }
 
-const useNutritionPlan = () => {
+const useNutritionPlan = (p0: (prev: any) => any) => {
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan>({
+    nombreMedico: '',
+    apellidoMedico: '',
+    especialidad: '',
     rup: '',
     objetivoPlan: '',
     funcionIntestinal: '',
@@ -68,18 +69,20 @@ const useNutritionPlan = () => {
     comida: [],
     cena: [],
     otrasComidas: [],
-    merienda: [],
-    recomplan: [],
-    codigoMedico: 0,
-    firmadoDigital: false
- 
+     codigoMedico: 0,
+    firmadoDigital: false,
+    fechaFirma: '',
+    recomactivida: [],
+    recomalimentos: [],
+    recomliquido: [],
+    recorecomotrasmplan: [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateField = (name: string, value: string) => {
+  const validateField = (name: string, value: any) => {
     let error = '';
-    if (value.trim().length < 3) {
+    if (typeof value === 'string' && value.trim().length < 3) {
       error = 'Debe tener al menos 3 caracteres';
     }
     return error;
@@ -87,24 +90,25 @@ const useNutritionPlan = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(`Cambiando ${name} a ${value}`); // Debugging
     setNutritionPlan(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (token: string) => {
     const newErrors = Object.keys(nutritionPlan).reduce((acc, key) => {
       const value = nutritionPlan[key as keyof NutritionPlan];
-      const error = typeof value === 'string' ? validateField(key, value) : '';
+      const error = typeof value === 'string' && value.trim().length < 3
+        ? 'Debe tener al menos 3 caracteres'
+        : '';
       return { ...acc, [key]: error };
     }, {} as Record<string, string>);
-
+  
     setErrors(newErrors);
-
+  
     if (Object.values(newErrors).some(error => error !== '')) {
       console.error('Hay errores en el formulario');
       return;
     }
-
+  
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/planes-nutricionales`, {
         method: 'POST',
@@ -114,22 +118,25 @@ const useNutritionPlan = () => {
         },
         body: JSON.stringify(nutritionPlan),
       });
-
+  
       if (!response.ok) {
         throw new Error('Error al guardar los datos');
       }
-
+  
       const data = await response.json();
       console.log('Datos guardados:', data);
-      return data; // Retorna los datos guardados si es necesario
+      return data;
     } catch (error) {
       console.error('Error al guardar los datos:', error);
-      throw error; // Lanza el error para manejarlo en el componente
+      throw error;
     }
   };
-
+  
   const handleClear = () => {
     setNutritionPlan({
+      nombreMedico: '',
+      apellidoMedico: '',
+      especialidad: '',
       rup: '',
       objetivoPlan: '',
       funcionIntestinal: '',
@@ -147,10 +154,13 @@ const useNutritionPlan = () => {
       comida: [],
       cena: [],
       otrasComidas: [],
-      merienda: [],
-      recomplan: [],
+      recomactivida: [],
+      recomalimentos: [],
+      recomliquido: [],
+      recorecomotrasmplan: [],
       codigoMedico: 0,
-      firmadoDigital: false
+      firmadoDigital: false,
+      fechaFirma: '',
     });
     setErrors({});
   };

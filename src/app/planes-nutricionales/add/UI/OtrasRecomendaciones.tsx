@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { TextField, Button, IconButton, Typography, Box, CircularProgress, Snackbar, Alert, createTheme, ThemeProvider } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
 import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import { useFormContext } from '../../context/FormContext';
 
 interface Elemento {
   nombre: string; // Nombre del elemento a evitar
@@ -13,8 +14,21 @@ interface Elemento {
   cantidad: string; // Cantidad a evitar
 }
 
-const OtrasRecomendaciones = () => {
-  const { nutritionPlan, setNutritionPlan } = useNutritionPlan(); // Usa el hook
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+
+const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
+  const { planesNutrionales, setNutritionPlan } = useFormContext();
+  
   const [elemento, setElemento] = useState<Elemento>({ nombre: '', frecuencia: '', cantidad: '' });
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,38 +36,45 @@ const OtrasRecomendaciones = () => {
 
   const agregarElemento = () => {
     if (elemento.nombre && elemento.frecuencia && elemento.cantidad) {
-      // Agrega el elemento al array de recomendaciones
+     
+      const updatedRecomplan = [
+        ...planesNutrionales.recomplan,
+        {
+          ...planesNutrionales.recomplan[index],
+          otrasRecomendaciones: elemento.nombre,
+        }
+      ];
+
       setNutritionPlan(prev => ({
         ...prev,
-        recomplan: [
-          ...prev.recomplan,
-          {
-            ...elemento,
-            alimentosEvitar: elemento.nombre,
-            frecEvitar: elemento.frecuencia,
-            cantidadEvitar: elemento.cantidad,
-            actividadFisica: '', // Add default or appropriate values for missing properties
-            frecActividadFisica: '',
-            consumoLiquido: '',
-            frecConsumoLiquido: '',
-            otrasRecomendaciones: ''
-          }
-        ]
+        recomplan: updatedRecomplan
       }));
-      setElemento({ nombre: '', frecuencia: '', cantidad: '' }); // Reinicia el estado del elemento
+
+      // Actualiza solo las propiedades relevantes
+      setElemento({ nombre: '', frecuencia: '', cantidad: '' });
+      setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
+
+      // Actualiza el estado del contexto
+      useNutritionPlan(prev => ({ ...prev, recomplan: updatedRecomplan }));
+      
+      // Reinicia el estado del elemento
+      setElemento({ nombre: '', frecuencia: '', cantidad: '' });
+      
+      // Muestra un mensaje de éxito
       setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
     } else {
+      // Muestra un mensaje de error si los campos no están completos
       setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
     }
   };
-
+  
   const limpiarBuscar = () => {
-    setBuscar('');
+    setBuscar(''); // Limpia el campo de búsqueda
   };
-
+  
   const eliminarElemento = (index: number) => {
-    const nuevaLista = nutritionPlan.recomplan.filter((_, i) => i !== index);
-    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    const nuevaLista = planesNutrionales.recomplan.filter((_, i) => i !== index);
+    useNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
     setSnackbar({ open: true, message: 'Elemento eliminado exitosamente', severity: 'success' });
   };
 
@@ -65,6 +86,7 @@ const OtrasRecomendaciones = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <Box className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
       <Box className="p-4">
         <Typography variant="h6" fontWeight="bold" mb={2}>Lista de Otras Recomendaciones</Typography>
@@ -72,10 +94,10 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: "olivedrab" }}>No hay elementos agregados.</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.alimentosEvitar}</li>
                 ))
               )}
@@ -84,10 +106,10 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
                 ))
               )}
@@ -96,10 +118,10 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((recomendacion, index) => (
+                planesNutrionales.recomplan.map((recomendacion, index) => (
                   <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
                 ))
               )}
@@ -108,10 +130,10 @@ const OtrasRecomendaciones = () => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {nutritionPlan.recomplan.length === 0 ? (
+              {planesNutrionales.recomplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                nutritionPlan.recomplan.map((_, index) => (
+                planesNutrionales.recomplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarElemento(index)} color="error">
                       <FaDeleteLeft />
@@ -210,6 +232,7 @@ const OtrasRecomendaciones = () => {
         </Alert>
       </Snackbar>
     </Box>
+    </ThemeProvider>
   );
 };
 
