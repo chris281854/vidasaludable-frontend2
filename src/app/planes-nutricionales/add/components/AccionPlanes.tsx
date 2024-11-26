@@ -25,7 +25,7 @@ import { LockIcon } from "lucide-react";
 const MedicalSignatureComponent = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const { nutritionPlan, setNutritionPlan, errors, handleInputChange, handleSubmit, handleClear } = useNutritionPlan(prev => ({ ...prev })); // Usa el hook
+  const { nutritionPlan, setNutritionPlan, errors, handleInputChange, handleSubmit ,handleClear } = useNutritionPlan(prev => ({ ...prev })); // Usa el hook
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -115,7 +115,7 @@ const MedicalSignatureComponent = () => {
   const handleGuardar = async () => {
     if (session?.user?.token) {
       try {
-        await handleSubmit(session.user.token);
+        await handleSubmit(session?.user?.token);
         showNotification('Datos guardados exitosamente', 'success');
       } catch (error) {
         showNotification('Error al guardar los datos', 'error');

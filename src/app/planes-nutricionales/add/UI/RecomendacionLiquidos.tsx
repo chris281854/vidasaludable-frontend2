@@ -27,7 +27,7 @@ const theme = createTheme({
 });
 
 
-const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
+const ConsumoLiquidosSection: React.FC = () => {
 
   const {
     planesNutrionales,
@@ -42,23 +42,11 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
   const agregarLiquido = () => {
     if (liquido.nombre && liquido.frecuencia && liquido.cantidad) {
   
-       // Crea una copia del array de recomendaciones
-       const updatedRecomplan = [...planesNutrionales.recomplan];
-   
-      // Agrega el líquido al array de recomendaciones
-      setNutritionPlan(prev => ({
-        ...prev,
-        recomplan: [
-          ...prev.recomplan,
-          {
-            ...prev.recomplan[index],
-            consumoLiquido: liquido.nombre,
-            frecConsumoLiquido: liquido.frecuencia,
-            
-            
-          }
-        ]
-      }));
+    setNutritionPlan(prev => ({
+      ...prev,
+      recomliquido:[...prev.recomliquido, { ...liquido }]
+    }));
+    
       setLiquido({ nombre: '', frecuencia: '', cantidad: '' }); // Reinicia el estado del líquido
       setSnackbar({ open: true, message: 'Líquido agregado exitosamente', severity: 'success' });
     } else {
@@ -71,8 +59,11 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
   };
 
   const eliminarLiquido = (index: number) => {
-    const nuevaLista = planesNutrionales.recomplan.filter((_, i) => i !== index);
-    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.recomliquido.filter((_, i) => i !== index);
+      return { ...prev, recomliquido: nuevaLista };
+    });
+    
     setSnackbar({ open: true, message: 'Líquido eliminado exitosamente', severity: 'success' });
   };
 
@@ -92,11 +83,11 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Líquido</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomliquido.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: "orange" }}>No hay líquidos agregados.</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.consumoLiquido}</li>
+                planesNutrionales.recomliquido.map((recomliquido, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomliquido.nombre}</li>
                 ))
               )}
             </ul>
@@ -104,11 +95,11 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomliquido.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecConsumoLiquido}</li>
+                planesNutrionales.recomliquido.map((recomliquido, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomliquido.frecuencia}</li>
                 ))
               )}
             </ul>
@@ -116,11 +107,11 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomliquido.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecConsumoLiquido}</li>
+                planesNutrionales.recomliquido.map((recomliquido, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomliquido.cantidad}</li>
                 ))
               )}
             </ul>
@@ -128,10 +119,10 @@ const ConsumoLiquidosSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomliquido.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((_, index) => (
+                planesNutrionales.recomliquido.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarLiquido(index)} color="error">
                       <FaDeleteLeft />

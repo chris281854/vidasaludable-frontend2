@@ -25,8 +25,8 @@ const theme = createTheme({
   },
 });
 
-
-const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
+ 
+const OtrasRecomendaciones: React.FC = () => {
   const { planesNutrionales, setNutritionPlan } = useFormContext();
   
   const [elemento, setElemento] = useState<Elemento>({ nombre: '', frecuencia: '', cantidad: '' });
@@ -37,31 +37,18 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
   const agregarElemento = () => {
     if (elemento.nombre && elemento.frecuencia && elemento.cantidad) {
      
-      const updatedRecomplan = [
-        ...planesNutrionales.recomplan,
-        {
-          ...planesNutrionales.recomplan[index],
-          otrasRecomendaciones: elemento.nombre,
-        }
-      ];
+      // Agrega el elemento como objeto al array
 
       setNutritionPlan(prev => ({
         ...prev,
-        recomplan: updatedRecomplan
+        recorecomotrasmplan: [...prev.recorecomotrasmplan, { ...elemento }] 
       }));
 
       // Actualiza solo las propiedades relevantes
       setElemento({ nombre: '', frecuencia: '', cantidad: '' });
       setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
 
-      // Actualiza el estado del contexto
-      useNutritionPlan(prev => ({ ...prev, recomplan: updatedRecomplan }));
-      
-      // Reinicia el estado del elemento
-      setElemento({ nombre: '', frecuencia: '', cantidad: '' });
-      
-      // Muestra un mensaje de éxito
-      setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
+     
     } else {
       // Muestra un mensaje de error si los campos no están completos
       setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
@@ -73,8 +60,11 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
   };
   
   const eliminarElemento = (index: number) => {
-    const nuevaLista = planesNutrionales.recomplan.filter((_, i) => i !== index);
-    useNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
+    // Elimina el elemento de la lista de recomendaciones
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.recorecomotrasmplan.filter((_, i) => i !== index);
+      return { ...prev, recorecomotrasmplan: nuevaLista };
+    });
     setSnackbar({ open: true, message: 'Elemento eliminado exitosamente', severity: 'success' });
   };
 
@@ -94,11 +84,11 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recorecomotrasmplan.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: "olivedrab" }}>No hay elementos agregados.</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.alimentosEvitar}</li>
+                planesNutrionales.recorecomotrasmplan.map((recorecomotrasmplan, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recorecomotrasmplan.nombre}</li>
                 ))
               )}
             </ul>
@@ -106,11 +96,11 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recorecomotrasmplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
+                planesNutrionales.recorecomotrasmplan.map((recorecomotrasmplan, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recorecomotrasmplan.frecuencia}</li>
                 ))
               )}
             </ul>
@@ -118,11 +108,11 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Cantidad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recorecomotrasmplan.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.otrasRecomendaciones}</li>
+                planesNutrionales.recorecomotrasmplan.map((recorecomotrasmplan, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recorecomotrasmplan.cantidad}</li>
                 ))
               )}
             </ul>
@@ -130,10 +120,10 @@ const OtrasRecomendaciones: React.FC<{ index: number }> = ({ index }) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recorecomotrasmplan.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((_, index) => (
+                planesNutrionales.recorecomotrasmplan.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarElemento(index)} color="error">
                       <FaDeleteLeft />

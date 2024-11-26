@@ -8,8 +8,7 @@ import { GrClearOption } from 'react-icons/gr';
 
 interface Elemento {
   nombre: string;
-  frecuencia: string;
-  cantidad: string;
+  
 }
 
 const theme = createTheme({
@@ -23,9 +22,15 @@ const theme = createTheme({
   },
 });
 
-const AlimentosEvitarSection: React.FC<{ index: number }> = ({ index }) => {
-  const { planesNutrionales, setNutritionPlan } = useFormContext();
-  const [elemento, setElemento] = useState<Elemento>({ nombre: '', frecuencia: '', cantidad: '' });
+const AlimentosEvitarSection: React.FC = () => {
+
+  const {
+    planesNutrionales,
+    setNutritionPlan,
+  } = useFormContext(); // Usa el contexto
+
+  
+  const [elemento, setElemento] = useState<Elemento>({ nombre: '' });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const [buscar, setBuscar] = useState(''); // Estado para el campo de búsqueda
   const [isLoading, setIsLoading] = useState(false); // Estado para el estado de carga
@@ -35,26 +40,19 @@ const AlimentosEvitarSection: React.FC<{ index: number }> = ({ index }) => {
       
        setNutritionPlan(prev => ({
        ...prev,
-        recomplan: [
-           ...prev.recomplan,
-          {
-          ...prev.recomplan[index],
-            alimentosEvitar: elemento.nombre,
-          }
-        ]
+       recomalimentos: [...prev.recomalimentos,{...elemento, frecuencia: '', cantidad: ''}]
       }));
-      setElemento({ nombre: '', frecuencia: '', cantidad: '' });
+      setElemento({ nombre: ''});
       setSnackbar({ open: true, message: 'Elemento agregado exitosamente', severity: 'success' });
     }else {
       setSnackbar({ open: true, message: 'Por favor ingrese un elemento', severity: 'error' });
     }
   };
-  const eliminarElemento = () => {
-    const updatedRecomplan = [...planesNutrionales.recomplan];
-    if (updatedRecomplan[index]) {
-      updatedRecomplan[index].alimentosEvitar = ''; // Elimina el alimento
-    }
-    setNutritionPlan({ ...planesNutrionales, recomplan: updatedRecomplan });
+  const eliminarElemento = (index: number) => {
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.recomalimentos.filter((_, i) => i !== index);
+      return { ...prev, recomalimentos: nuevaLista };
+    });
     setSnackbar({ open: true, message: 'Elemento eliminado exitosamente', severity: 'success' });
   };
 
@@ -71,21 +69,27 @@ const AlimentosEvitarSection: React.FC<{ index: number }> = ({ index }) => {
             <Box width="25%">
               <Typography variant="subtitle1" fontWeight="bold" mb={2}>Elemento</Typography>
               <ul style={{ padding: 0, listStyleType: 'none' }}>
-                {planesNutrionales.recomplan[index]?.alimentosEvitar ? (
-                  <li style={{ marginBottom: '14px' }}>{planesNutrionales.recomplan[index].alimentosEvitar}</li>
+                {planesNutrionales.recomalimentos.length === 0 ? (
+                   <li style={{ marginBottom: '14px', color: 'green' }}>No hay Alimentos listados.</li>
                 ) : (
-                  <li style={{ marginBottom: '14px', color: "peru" }}>No hay elementos agregados.</li>
+                  planesNutrionales.recomalimentos.map((elemento: Elemento, index: number) => (
+                    <li key={index} style={{ marginBottom: '14px' }}>
+                      {`${elemento.nombre}`} {/* Muestra el alimento concatenado */}
+                    </li>
+                  ))
                 )}
               </ul>
             </Box>
             <Box width="25%">
               <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
               <ul style={{ padding: 0, listStyleType: 'none' }}>
-                <li style={{ marginBottom: '-1px' }}>
-                  <IconButton onClick={eliminarElemento} color="error">
-                    <FaDeleteLeft />
-                  </IconButton>
-                </li>
+                {planesNutrionales.recomalimentos.map((_, index: number) => (
+                  <li key={index} style={{ marginBottom: '-1px' }}>
+                    <IconButton onClick={() => eliminarElemento(index)} color="error">
+                      <FaDeleteLeft />
+                    </IconButton>
+                  </li>
+                ))}
               </ul>
             </Box>
           </Box>

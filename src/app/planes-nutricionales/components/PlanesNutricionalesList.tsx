@@ -53,18 +53,18 @@ const PlanesNutricionalesList: React.FC<PatientListProps> = ({ filterText }) => 
         const data = await response.json();
 
         if (Array.isArray(data)) {
-          const formattedData = data.map((item) => ({
-            idPlan: item.idPlan,
-            rup: item.rup,
-            objetivoPlan: item.objetivoPlan,
-            proximaRevision: item.proximaRevision || 'No especificado',
-            registro: item.registro,
+          const formattedData = data.map((nutritionPlan) => ({
+            idPlan: nutritionPlan.idPlan,
+            rup: nutritionPlan.rup,
+            objetivoPlan: nutritionPlan.objetivoPlan,
+            proximaRevision: nutritionPlan.proximaRevision || 'No especificado',
+            registro: nutritionPlan.registro,
             paciente: {
-              nombre: item.paciente.nombre,
-              apellido: item.paciente.apellido,
-              sexo: item.paciente.sexo,
-              ciudad: item.paciente.ciudad,
-              nacimiento: item.paciente.nacimiento,
+              nombre: nutritionPlan.nombre,
+              apellido: nutritionPlan.apellido,
+              sexo: nutritionPlan.sexo,
+              ciudad: nutritionPlan.ciudad,
+              nacimiento: nutritionPlan.nacimiento,
             },
           }));
 

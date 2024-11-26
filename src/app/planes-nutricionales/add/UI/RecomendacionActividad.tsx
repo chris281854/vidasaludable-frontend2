@@ -26,7 +26,7 @@ const theme = createTheme({
 });
 
 
-const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
+const RecomendacionSection: React.FC = () => {
 
   const {
     planesNutrionales,
@@ -34,7 +34,7 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
   } = useFormContext(); // Usa el contexto
 
   
-  const [actividad, setActividad] = useState<Actividad>({ nombre: '', frecuencia: '', duracion: '' });
+  const [actividad, setActividad] = useState<Actividad & { cantidad: string }>({ nombre: '', frecuencia: '', duracion: '', cantidad: '' });
   const [buscar, setBuscar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -44,20 +44,10 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
       // Agrega la actividad al array de recomendaciones
       setNutritionPlan(prev => ({
         ...prev,
-        recomplan: [
-          ...prev.recomplan,
-          {
-        
-              ...prev.recomplan[index],
-            actividadFisica: actividad.nombre,
-            frecActividadFisica: actividad.frecuencia,
-            duracion: actividad.duracion,
-            }
-       
-          
-        ]
+        recomactivida: [...prev.recomactivida, { ...actividad, cantidad: actividad.duracion }]
       }));
-      setActividad({ nombre: '', frecuencia: '', duracion: '' }); // Reinicia el estado de la actividad
+            
+      setActividad({ nombre: '', frecuencia: '', duracion: '', cantidad: '' }); // Reinicia el estado de la actividad
       setSnackbar({ open: true, message: 'Actividad agregada exitosamente', severity: 'success' });
     } else {
       setSnackbar({ open: true, message: 'Por favor completa todos los campos', severity: 'error' });
@@ -69,9 +59,11 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
   };
 
   const eliminarActividad = (index: number) => {
-    const nuevaLista = planesNutrionales.recomplan.filter((_, i) => i !== index);
-    setNutritionPlan(prev => ({ ...prev, recomplan: nuevaLista })); // Actualiza la lista de recomendaciones
-    setSnackbar({ open: true, message: 'Actividad eliminada exitosamente', severity: 'success' });
+    setNutritionPlan((prev) => {
+      const nuevaLista = prev.recomactivida.filter((_, i) => i !== index);
+      return { ...prev, recomactivida: nuevaLista };
+    });
+   setSnackbar({ open: true, message: 'Actividad eliminada exitosamente', severity: 'success' });
   };
 
   const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -91,11 +83,11 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Actividad</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomactivida.length === 0 ? (
                 <li style={{ marginBottom: '14px', color: 'blue' }}>No hay actividades agregadas.</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.actividadFisica}</li>
+                planesNutrionales.recomactivida.map((recomactivida, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomactivida.nombre}</li>
                 ))
               )}
             </ul>
@@ -103,11 +95,11 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Frecuencia</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomactivida.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
+                planesNutrionales.recomactivida.map((recomactivida, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomactivida.frecuencia}</li>
                 ))
               )}
             </ul>
@@ -115,11 +107,11 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={2}>Duración</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomactivida.length === 0 ? (
                 <li style={{ marginBottom: '14px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((recomendacion, index) => (
-                  <li key={index} style={{ marginBottom: '14px' }}>{recomendacion.frecActividadFisica}</li>
+                planesNutrionales.recomactivida.map((recomactivida, index) => (
+                  <li key={index} style={{ marginBottom: '14px' }}>{recomactivida.cantidad}</li>
                 ))
               )}
             </ul>
@@ -127,10 +119,10 @@ const RecomendacionSection: React.FC <{index: number}> = ({index}) => {
           <Box width="25%">
             <Typography variant="subtitle1" fontWeight="bold" mb={1}>Acciones</Typography>
             <ul style={{ padding: 0, listStyleType: 'none' }}>
-              {planesNutrionales.recomplan.length === 0 ? (
+              {planesNutrionales.recomactivida.length === 0 ? (
                 <li style={{ marginBottom: '-1px' }}>-</li>
               ) : (
-                planesNutrionales.recomplan.map((_, index) => (
+                planesNutrionales.recomactivida.map((_, index) => (
                   <li key={index} style={{ marginBottom: '-1px' }}>
                     <IconButton onClick={() => eliminarActividad(index)} color="error">
                       <FaDeleteLeft />

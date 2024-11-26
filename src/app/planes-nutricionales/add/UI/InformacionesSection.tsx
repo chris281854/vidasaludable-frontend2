@@ -74,7 +74,7 @@ const AddPatientForm: React.FC = () => {
  
     return (
       <ThemeProvider theme={theme}>
-        <form onSubmit={handleFormSubmit} style={{ width: '100%', maxWidth: '1300px', margin: '0 auto' }}>
+        <form onSubmit={handleFormSubmit} style={{ width: '100%', maxWidth: '1337px', margin: '0 auto' }}>
           
           {/* Sección de Recopilación Base del Paciente */}
           <Box className="w-full max-w-[1430px] rounded-lg">

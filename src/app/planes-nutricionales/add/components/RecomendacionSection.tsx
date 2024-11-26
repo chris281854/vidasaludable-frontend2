@@ -15,7 +15,7 @@ const RecomendacionesSection = () => {
             </Box>
 
             <Box className="flex items-center mb-2">
-                    <RecomendacionActividad index={0}/>
+                    <RecomendacionActividad />
             </Box>
 
             <Box className="w-full max-w-[1430px] p-5 rounded-lg">
@@ -23,7 +23,7 @@ const RecomendacionesSection = () => {
             </Box>
 
             <Box className="flex items-center mb-2">
-                    <ConsumoLiquidosSection index={0}/>
+                    <ConsumoLiquidosSection />
             </Box>
 
             <Box className="w-full max-w-[1430px] p-5 rounded-lg">
@@ -31,7 +31,7 @@ const RecomendacionesSection = () => {
             </Box>
 
             <Box className="flex items-center mb-2">
-                    <AlimentosEvitarSection index={0}/>
+                    <AlimentosEvitarSection />
             </Box>
 
             <Box className="w-full max-w-[1430px] p-5 rounded-lg">
@@ -39,7 +39,7 @@ const RecomendacionesSection = () => {
             </Box>
 
             <Box className="flex items-center mb-2">
-                    <OtrasRecomendaciones index={0}/>
+                    <OtrasRecomendaciones/>
             </Box>
     </div>
   );

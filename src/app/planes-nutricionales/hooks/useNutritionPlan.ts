@@ -1,5 +1,6 @@
 // hooks/useNutritionPlan.ts
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface Alimento {
   rup: string;
@@ -48,6 +49,7 @@ interface NutritionPlan {
 }
 
 const useNutritionPlan = (p0: (prev: any) => any) => {
+  const { data: session } = useSession();
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan>({
     nombreMedico: '',
     apellidoMedico: '',
@@ -94,44 +96,69 @@ const useNutritionPlan = (p0: (prev: any) => any) => {
   };
 
   const handleSubmit = async (token: string) => {
-    const newErrors = Object.keys(nutritionPlan).reduce((acc, key) => {
-      const value = nutritionPlan[key as keyof NutritionPlan];
-      const error = typeof value === 'string' && value.trim().length < 3
-        ? 'Debe tener al menos 3 caracteres'
-        : '';
-      return { ...acc, [key]: error };
-    }, {} as Record<string, string>);
-  
+    const newErrors: Record<string, string> = {};
+
+    // Validar campos de texto
+    Object.keys(nutritionPlan).forEach(key => {
+        const value = nutritionPlan[key as keyof NutritionPlan];
+        if (typeof value === 'string' && value.trim().length < 3) {
+            newErrors[key] = 'Debe tener al menos 3 caracteres';
+        }
+    });
+
+    // Validar que los campos de arreglos no estén vacíos
+    if (nutritionPlan.desayuno.length === 0) {
+        newErrors.desayuno = 'Debe agregar al menos un desayuno';
+    }
+    if (nutritionPlan.comida.length === 0) {
+        newErrors.comida = 'Debe agregar al menos una comida';
+    }
+    if (nutritionPlan.cena.length === 0) {
+        newErrors.cena = 'Debe agregar al menos una cena';
+    }
+    if (nutritionPlan.otrasComidas.length === 0) {
+        newErrors.otrasComidas = 'Debe agregar al menos una otra comida';
+    }
+
     setErrors(newErrors);
-  
+
     if (Object.values(newErrors).some(error => error !== '')) {
-      console.error('Hay errores en el formulario');
-      return;
+        console.error('Hay errores en el formulario', newErrors);
+        return;
     }
-  
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/planes-nutricionales`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(nutritionPlan),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Error al guardar los datos');
-      }
-  
-      const data = await response.json();
-      console.log('Datos guardados:', data);
-      return data;
+        if (!session) {
+            console.error('No session found');
+            return;
+        }
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/planes-nutricionales`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.user.token}`,
+            },
+            body: JSON.stringify(nutritionPlan),
+        });
+
+
+      // Imprimir la respuesta completa
+      const responseData = await response.json();
+      console.log('Respuesta del servidor:', responseData);
+
+        if (!response.ok) {
+            throw new Error('Error al guardar los datos');
+        }
+
+        const data = await response.json();
+        console.log('Datos guardados:', data);
+        return data;
     } catch (error) {
-      console.error('Error al guardar los datos:', error);
-      throw error;
+        console.error('Error al guardar los datos:', error);
+        throw error;
     }
-  };
-  
+};
   const handleClear = () => {
     setNutritionPlan({
       nombreMedico: '',
