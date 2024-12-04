@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import SectionDivider from "./SectionDivider";
+import SectionDivider from "../../../../components/SectionDivider";
 import DesayunoSection from "../UI/DesayunoSection";
 import MeriendaSection from "../UI/MeriendaSection";
 import AlmuerzoSection from "../UI/AlmuerzoSection";

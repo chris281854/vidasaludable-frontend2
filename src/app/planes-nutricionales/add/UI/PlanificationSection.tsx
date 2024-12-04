@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Grid, TextField } from '@mui/material';
-import SectionDivider from '../components/SectionDivider';
+import SectionDivider from '../../../../components/SectionDivider';
 import { FaWeight, FaChartPie, FaRunning, FaHeartbeat, FaAppleAlt, FaWater, FaCheckCircle,  FaStop, FaExclamationTriangle } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
 import { MdGppGood } from 'react-icons/md';

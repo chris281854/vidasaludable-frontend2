@@ -5,7 +5,7 @@ import { Box, Paper } from "@mui/material";
 import PlanesNutricionalesLayout from "../PlanesNutricionalesLayout";
 import { useState } from "react";
 import MainContainer from "./components/MainContainer";
-import PatientRightBar from "@/app/planes-nutricionales/add/components/PatientRightBar";
+import PatientRightBar from "@/components/PatientRightBar";
 import { Patient as DiagnosticoPatient } from "@/app/planes-nutricionales/interfaces/interfases";
 import AditionalInfo from "./UI/AditionalInfo";
 import { FormProvider } from "../context/FormContext";

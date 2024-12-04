@@ -28,7 +28,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import WarningIcon from '@mui/icons-material/Warning';
-import useFetchPatients from '../../hooks/userFetchPatients';
+import useFetchPatients from '../app/planes-nutricionales/hooks/userFetchPatients';
 
 interface Patient {
     rup: string;

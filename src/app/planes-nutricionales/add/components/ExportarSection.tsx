@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import SectionDivider from "./SectionDivider";
+import SectionDivider from "../../../../components/SectionDivider";
 import PlanNutricionalForm from "../UI/ExportarPlanes";
 import MedicalSignatureComponent from "./AccionPlanes";
 import { FormProvider } from "../../context/FormContext";

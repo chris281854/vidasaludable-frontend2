@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useFormContext } from '../../context/FormContext'; // Asegúrate de que la ruta sea correcta
-import SectionDivider from '../components/SectionDivider';
+import SectionDivider from '../../../../components/SectionDivider';
 
 const theme = createTheme({
   palette: {
