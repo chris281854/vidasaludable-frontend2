@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import SectionDivider from "./SectionDivider";
 import PlanNutricionalForm from "../UI/ExportarPlanes";
 import MedicalSignatureComponent from "./AccionPlanes";
+import { FormProvider } from "../../context/FormContext";
 
 const ExportarSection = () => {
 
@@ -22,7 +23,9 @@ const ExportarSection = () => {
             </Box>
 
             <Box className="flex items-center mb-2">
-                    <MedicalSignatureComponent/>
+            <FormProvider>
+            <MedicalSignatureComponent />
+            </FormProvider>
             </Box>
 
         </div>

@@ -18,14 +18,22 @@ import {
   Modal
 } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
-import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
 import ConfirmacionFirmaDialog from "@/app/diagnostico-clinico/components/ConfirmacionFirmaDialog";
 import { LockIcon } from "lucide-react";
+import useNutritionPlan from "../../hooks/useNutritionPlan" // Asegúrate de que la ruta sea correcta
 
 const MedicalSignatureComponent = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const { nutritionPlan, setNutritionPlan, errors, handleInputChange, handleSubmit ,handleClear } = useNutritionPlan(prev => ({ ...prev })); // Usa el hook
+  const {
+    nutritionPlan,
+    setNutritionPlan,
+    errors,
+    handleInputChange,
+    handleSubmit,
+    handleClear,
+  } = useNutritionPlan(); // Usar el hook
+
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -115,16 +123,17 @@ const MedicalSignatureComponent = () => {
   const handleGuardar = async () => {
     if (session?.user?.token) {
       try {
-        await handleSubmit(session?.user?.token);
+        await handleSubmit(); // Usar la función del hook para guardar
         showNotification('Datos guardados exitosamente', 'success');
       } catch (error) {
+        console.error('Error al guardar los datos:', error);
         showNotification('Error al guardar los datos', 'error');
       }
     }
   };
 
   const handleLimpiar = () => {
-    handleClear();
+    handleClear(); // Usar la función del hook para limpiar
     showNotification('Formulario limpiado exitosamente', 'success');
   };
 
@@ -181,7 +190,7 @@ const MedicalSignatureComponent = () => {
       if (data) {
         setNutritionPlan(prev => ({
           ...prev,
-          firmandoDigital: true,
+          firmadoDigital: true, // Asegúrate de que este valor se establezca en true
           firmadoPor: session?.user?.name || '',
           fechaFirma: new Date().toISOString()
         }));
@@ -215,7 +224,7 @@ const MedicalSignatureComponent = () => {
                       variant="outlined"
                       name="codigoMedico"
                       value={nutritionPlan.codigoMedico}
-                      onChange={handleInputChange}
+                      onChange={handleInputChange} // Usa el manejador del hook
                       sx={{ backgroundColor: 'white', borderRadius: '12px' }}
                       size="small"
                     />
@@ -283,7 +292,7 @@ const MedicalSignatureComponent = () => {
               {nutritionPlan.firmadoDigital && (
                 <Box sx={{ marginTop: 2, padding: 2, border: '1px solid #25aa80', borderRadius: '8px', backgroundColor: '#f0f8f0' }}>
                   <Typography variant="body1">
-                    El plan nutricional ha sido firmado por el usuario <strong>{session?.user?.name}</strong> en fecha <strong>{new Date(nutritionPlan.fechaFirma).toLocaleDateString()}</strong> y hora <strong>{new Date(nutritionPlan.fechaFirma).toLocaleTimeString()}</strong>.
+                    El plan nutricional ha sido firmado por el usuario <strong>{nutritionPlan.nombreMedico + " " +nutritionPlan.apellidoMedico}</strong> en fecha <strong>{new Date(nutritionPlan.fechaFirma).toLocaleDateString()}</strong> y hora <strong>{new Date(nutritionPlan.fechaFirma).toLocaleTimeString()}</strong>.
                   </Typography>
                 </Box>
               )}

@@ -10,6 +10,7 @@ import Logo from '@/app/paciente/components/logo';
 import { FaListAlt } from "react-icons/fa";
 import { LiaListAlt } from "react-icons/lia";
 import { MdAssignmentAdd } from 'react-icons/md';
+import { SiTestcafe } from "react-icons/si";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -132,6 +133,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
 
+  const evaluacionesNutricionalesItems = [
+    {icon: LiaListAlt, label: "Dashboard ", href: "/evaluaciones-nutricionales" },
+    { icon: AiOutlinePlusCircle, label: "Realizar Evaluacion", href: "/evaluaciones-nutricionales/add" },
+    { icon: AiOutlineEdit, label: "Modificar Evaluacion", href: "/evaluaciones-nutricionales/edit" },
+    { icon: AiOutlineDelete, label: "Eliminar Evaluacion", href: "/evaluaciones-nutricionales/delete" },
+  ];
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -197,6 +204,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         
         
         />
+
+        <SidebarItem 
+          icon={SiTestcafe} 
+          label="Evaluaciones Nutricionales" 
+          href="/evaluaciones-nutricionales" 
+          expanded={expanded}
+          subItems={evaluacionesNutricionalesItems}
+          activeSubmenu={activeSubmenu}
+          setActiveSubmenu={setActiveSubmenu}
+          />
+
       </nav>
 
       <div className="mt-auto">

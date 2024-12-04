@@ -60,11 +60,11 @@ const PlanesNutricionalesList: React.FC<PatientListProps> = ({ filterText }) => 
             proximaRevision: nutritionPlan.proximaRevision || 'No especificado',
             registro: nutritionPlan.registro,
             paciente: {
-              nombre: nutritionPlan.nombre,
-              apellido: nutritionPlan.apellido,
-              sexo: nutritionPlan.sexo,
-              ciudad: nutritionPlan.ciudad,
-              nacimiento: nutritionPlan.nacimiento,
+              nombre: nutritionPlan.paciente.nombre, // Acceso correcto al nombre
+              apellido: nutritionPlan.paciente.apellido, // Acceso correcto al apellido
+              sexo: nutritionPlan.paciente.sexo,
+              ciudad: nutritionPlan.paciente.ciudad,
+              nacimiento: nutritionPlan.paciente.nacimiento,
             },
           }));
 
@@ -95,19 +95,19 @@ const PlanesNutricionalesList: React.FC<PatientListProps> = ({ filterText }) => 
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="container mx-auto grid grid-cols-12 mt-10">
-      <div className="col-span-10 bg-white rounded-lg shadow-lg p-4 overflow-auto">
+    <div className="container mx-auto grid grid-cols-8 mt-10">
+      <div className="col-span-10 bg-white rounded-lg shadow-lg p-2 overflow-auto w-full"> {/* Aumentar ancho del contenedor */}
         <h2 className="text-2xl text-black font-extrabold mb-4 text-center">Planes Nutricionales Registrados</h2>
         {filteredPlans.length === 0 ? (
           <div className="text-center text-gray-500 mt-4">No se encontraron planes nutricionales.</div>
         ) : (
-          <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300 mt-4">
+          <table className="min-w-full bg-gray-100 text-gray-800 border border-gray-300 mt-4 w-full"> {/* Aumentar ancho de la tabla */}
             <thead className='text-slate-100'>
               <tr className="text-center bg-[#25aa80] ">
                 <th className="py-4 px-4 border-b border-gray-300">ID del Plan</th>
                 <th className="py-4 px-4 border-b border-gray-300">RUP</th>
-                <th className="py-4 px-4 border-b border-gray-300">Nombre del Paciente</th>
-                <th className="py-4 px-4 border-b border-gray-300">Apellido del Paciente</th>
+                <th className="py-4 px-4 border-b border-gray-300 w-1/4">Nombre del Paciente</th> {/* Aumentar ancho */}
+                <th className="py-4 px-4 border-b border-gray-300 w-1/4">Apellido del Paciente</th> {/* Aumentar ancho */}
                 <th className="py-4 px-4 border-b border-gray-300">Objetivo del Plan</th>
                 <th className="py-4 px-4 border-b border-gray-300">Fecha de Registro</th>
                 <th className="py-4 px-4 border-b border-gray-300">Fecha de Próxima Revisión</th>
