@@ -20,19 +20,10 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import ConfirmacionFirmaDialog from "@/app/diagnostico-clinico/components/ConfirmacionFirmaDialog";
 import { LockIcon } from "lucide-react";
-import useNutritionPlan from "../../hooks/useNutritionPlan" // Asegúrate de que la ruta sea correcta
 
 const MedicalSignatureComponent = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const {
-    nutritionPlan,
-    setNutritionPlan,
-    errors,
-    handleInputChange,
-    handleSubmit,
-    handleClear,
-  } = useNutritionPlan(); // Usar el hook
 
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
@@ -52,6 +43,14 @@ const MedicalSignatureComponent = () => {
   const [openPasswordModal, setOpenPasswordModal] = useState(false);
   const [password, setPassword] = useState('');
   const [openFirmaDialog, setOpenFirmaDialog] = useState(false); // Estado para el nuevo modal
+  const [nutritionPlan, setNutritionPlan] = useState({
+    codigoMedico: '',
+    nombreMedico: '',
+    apellidoMedico: '',
+    especialidad: '',
+    firmadoDigital: false,
+    fechaFirma: '',
+  });
 
   const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info') => {
     setSnackbar({
@@ -89,7 +88,7 @@ const MedicalSignatureComponent = () => {
   
       const data = await response.json();
       if (data) {
-        setNutritionPlan(prev => ({
+        setNutritionPlan((prev) => ({
           ...prev,
           nombreMedico: data.nombre || '',
           apellidoMedico: data.apellido || '',
@@ -101,7 +100,7 @@ const MedicalSignatureComponent = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      setNutritionPlan(prev => ({
+      setNutritionPlan((prev) => ({
         ...prev,
         nombreMedico: '',
         apellidoMedico: '',
@@ -120,20 +119,7 @@ const MedicalSignatureComponent = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleGuardar = async () => {
-    if (session?.user?.token) {
-      try {
-        await handleSubmit(); // Usar la función del hook para guardar
-        showNotification('Datos guardados exitosamente', 'success');
-      } catch (error) {
-        console.error('Error al guardar los datos:', error);
-        showNotification('Error al guardar los datos', 'error');
-      }
-    }
-  };
-
   const handleLimpiar = () => {
-    handleClear(); // Usar la función del hook para limpiar
     showNotification('Formulario limpiado exitosamente', 'success');
   };
 
@@ -214,19 +200,22 @@ const MedicalSignatureComponent = () => {
         <div className="p-8">
           <div className="grid grid-cols-12 gap-8">
             {/* Columna principal - Lado izquierdo */}
-            <div className="col-span-8">
+            <div className="col-span-12">
               {/* Sección Datos del Médico */}
-              <Paper sx={{ marginBottom: '2rem', backgroundColor: 'transparent' }} elevation={0} className="mt-12">
-                <div className="grid grid-cols-3 gap-6 mt-6">
+              <Paper sx={{ marginBottom: '2rem', backgroundColor: 'transparent' }} elevation={0} className="mt-6">
+                <div className="grid grid-cols-3 gap-6 mt-4">
                   <div className="flex items-center gap-2">
                     <TextField
                       label="ID Médico"
                       variant="outlined"
                       name="codigoMedico"
                       value={nutritionPlan.codigoMedico}
-                      onChange={handleInputChange} // Usa el manejador del hook
-                      sx={{ backgroundColor: 'white', borderRadius: '12px' }}
-                      size="small"
+                      sx={{ mb: 2, borderRadius: '20px' }}
+                        InputProps={{
+                            sx: {
+                                borderRadius: '20px',
+                            },
+                        }}
                     />
                     <IconButton 
                       onClick={buscarMedico}
@@ -251,16 +240,24 @@ const MedicalSignatureComponent = () => {
                     label="Médico"
                     variant="outlined"
                     value={`${nutritionPlan.nombreMedico} ${nutritionPlan.apellidoMedico}`.trim()}
-                    sx={{ backgroundColor: 'white', borderRadius: '12px' }}
-                    disabled
+                    sx={{ mb: 2, borderRadius: '20px' }}
+                        InputProps={{
+                            sx: {
+                                borderRadius: '20px',
+                            },
+                        }}
                   />
                   <TextField
                     fullWidth
                     label="Especialidad"
                     variant="outlined"
                     value={nutritionPlan.especialidad}
-                    sx={{ backgroundColor: 'white', borderRadius: '12px' }}
-                    disabled
+                    sx={{ mb: 2, borderRadius: '20px' }}
+                    InputProps={{
+                        sx: {
+                            borderRadius: '20px',
+                        },
+                    }}
                   />
                 </div>
               </Paper>
@@ -297,7 +294,7 @@ const MedicalSignatureComponent = () => {
                 </Box>
               )}
 
-           
+             
             </div>
           </div>
 
@@ -356,14 +353,13 @@ const MedicalSignatureComponent = () => {
               ),
             }}
           />
-          <Box display="flex" justifyContent="space-between">
-            <Button variant="contained" color="primary" onClick={handlePasswordSubmit}>
-              Enviar
-            </Button>
-            <Button variant="outlined" color="secondary" onClick={() => setOpenPasswordModal(false)}>
-              Cancelar
-            </Button>
-          </Box>
+          <Button 
+            variant="contained" 
+            onClick={handlePasswordSubmit}
+            sx={{ backgroundColor: '#25aa80', width: '100%' }}
+          >
+            Confirmar
+          </Button>
         </Box>
       </Modal>
     </div>
