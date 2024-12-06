@@ -5,6 +5,18 @@ import { Box, Card, CardContent, Typography, TextField, Button } from '@mui/mate
 import SectionDivider from '@/components/SectionDivider';
 import MedicalSignatureComponent from '@/components/MedicalSignature';
 
+interface EvaluacionesNutricionalesFormProps {
+    nutritionPlan: {
+        tallaMt: number;
+        pesoKg: number;
+        indiceCintura: number;
+        indiceCadera: number;
+        pesoGraso: number;
+        pesoMagra: number;
+    };
+    onChange: (field: string, value: number) => void; // Función para manejar cambios
+}
+
 const EvaluacionesNutricionalesForm = () => {
     const [formData, setFormData] = useState({
         idEvaluacion: 0,

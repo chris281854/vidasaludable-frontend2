@@ -1,15 +1,27 @@
-'use client';
+// AddEvaluacionesNutricionales.tsx
 
+'use client'
+
+import React, { useState } from 'react';
 import HeaderUser from "@/components/headeruser";
 import EvaluacionesNutricionalesLayout from "../EvaluacionesNutricionalesLayout";
 import { Box, Card, CardContent } from '@mui/material';
 import PatientRightBar from "@/components/PatientRightBar";
- import HistorialPatologico from "../components/HistorialPatologico"; // Asegúrate de que la ruta sea correcta
-import HistorialClinico from "../components/HistorialClinico"; // Asegúrate de que la ruta sea correcta
-import { useState } from 'react';
+import HistorialPatologico from "../components/HistorialPatologico"; 
+import HistorialClinico from "../components/HistorialClinico"; 
 import EvaluacionesNutricionalesForm from "./components/EvalacionesNutricionalesForm";
+import NutritionalAnalysis from "../components/NutritionalAnalysis";
 
 const AddEvaluacionesNutricionales = () => {    
+    const [nutritionPlan, setNutritionPlan] = useState({
+        tallaMt: 1.75,
+        pesoKg: 70,
+        indiceCintura: 80,
+        indiceCadera: 95,
+        pesoGraso: 15,
+        pesoMagra: 55,
+    });
+
     const [historialPatologico, setHistorialPatologico] = useState<string[]>([]);
     const [historialClinico, setHistorialClinico] = useState<string[]>([]);
 
@@ -21,16 +33,25 @@ const AddEvaluacionesNutricionales = () => {
         setHistorialClinico(historialClinico.filter((_, i) => i !== index));
     };
 
+    // Función para manejar cambios en los inputs
+    const handleInputChange = (field: string, value: number) => {
+        setNutritionPlan((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
     return (
         <EvaluacionesNutricionalesLayout>
             <div>
                 <HeaderUser title="Evaluaciones Nutricionales ~ Registro de Evaluaciones" />
                 
-                {/* Contenedor flex para el formulario y el right bar */}
-                <Box sx={{ display: 'flex' }}> {/* mt: 4 para espacio entre el header y el formulario */}
-              
-                    <Box sx={{ flex: 1, mt:24, mr: 2 }}> {/* Espacio a la derecha del formulario */}
-                        <EvaluacionesNutricionalesForm />
+                <Box sx={{ display: 'flex' }}>
+                    <Box sx={{ flex: 1, mt: 24, mr: 2 }}>
+                        <EvaluacionesNutricionalesForm 
+                            nutritionPlan={nutritionPlan} 
+                            onChange={handleInputChange} // Pasar la función de manejo de cambios
+                        />
                     </Box>
             
                     <Box sx={{ mt: 26, mr: 3, width: '600px', position: 'relative' }}>
@@ -60,7 +81,7 @@ const AddEvaluacionesNutricionales = () => {
                                 <HistorialPatologico 
                                     historial={historialPatologico} 
                                     onAddHistorial={(nuevoHistorial) => setHistorialPatologico([...historialPatologico, nuevoHistorial])} 
-                                    onRemoveHistorial={handleRemoveHistorialPatologico} // Pasar la función de eliminación
+                                    onRemoveHistorial={handleRemoveHistorialPatologico} 
                                 />
                             </CardContent>
                         </Card>
@@ -69,7 +90,20 @@ const AddEvaluacionesNutricionales = () => {
                                 <HistorialClinico 
                                     historial={historialClinico} 
                                     onAddHistorial={(nuevoHistorial) => setHistorialClinico([...historialClinico, nuevoHistorial])} 
-                                    onRemoveHistorial={handleRemoveHistorialClinico} // Pasar la función de eliminación
+                                    onRemoveHistorial={handleRemoveHistorialClinico} 
+                                />
+                            </CardContent>
+                        </Card>
+
+                        <Card sx={{ background: 'white', boxShadow: 3, mt: 14 }}>
+                            <CardContent>
+                                <NutritionalAnalysis 
+                                  tallaMt={nutritionPlan.tallaMt}
+                                  pesoKg={nutritionPlan.pesoKg}
+                                  indiceCintura={nutritionPlan.indiceCintura}
+                                  indiceCadera={nutritionPlan.indiceCadera}
+                                  pesoGraso={nutritionPlan.pesoGraso}
+                                  pesoMagra={nutritionPlan.pesoMagra}
                                 />
                             </CardContent>
                         </Card>
