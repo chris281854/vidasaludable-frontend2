@@ -29,20 +29,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import WarningIcon from '@mui/icons-material/Warning';
 import useFetchPatients from '../app/planes-nutricionales/hooks/userFetchPatients';
-
-interface Patient {
-    rup: string;
-    nombre: string;
-    apellido: string;
-    ciudad: string;
-    registro: string;
-    detallepaciente?: DetallePaciente[];
-}
-
-interface DetallePaciente {
-    objetivo: string;
-    motivo: string;
-}
+import { Patient } from '../app/planes-nutricionales/interfaces/interfases';
 
 interface PatientRightBarProps {
   patientData: {
@@ -53,6 +40,8 @@ interface PatientRightBarProps {
     fechaRegistro: Date | null;
     ciudadPaciente: string;
     objetivoConsulta: string;
+    fechaNacimiento: string; // Añadir la fecha de nacimiento
+    edad: number;
   };
   disabled?: boolean; 
   onRupChange: (rup: string) => void;
@@ -74,9 +63,9 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'F12') {
-        event.preventDefault();
-        setModalOpen(true);
-        fetchPatients();
+        event.preventDefault(); // Evita la acción predeterminada de F12
+        setModalOpen(true); // Abre el modal
+        fetchPatients(); // Llama a la función para obtener pacientes
       }
     };
 
@@ -92,13 +81,26 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
       rupPaciente: patient.rup,
       fechaRegistro: new Date(patient.registro),
       ciudadPaciente: patient.ciudad,
-      objetivoConsulta: patient.detallepaciente?.[0]?.objetivo || 'No especificado'
+      objetivoConsulta: patient.detallepaciente?.[0]?.objetivo || 'No especificado',
+      fechaNacimiento: patient.nacimiento, // Asegúrate de que esto esté en el objeto del paciente
+      edad: calcularEdad(patient.nacimiento) // Calcular la edad
     };
 
     setSelectedPatient(mappedPatientData);
     onPatientSelect(patient);
     onRupChange(patient.rup);
     setModalOpen(false); // Cerrar el modal después de seleccionar
+  };
+
+  const calcularEdad = (fechaNacimiento: string) => {
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    return edad;
   };
 
   const filteredPatients = patients.filter((patient: Patient) =>
@@ -239,6 +241,26 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
 
           <TextField
             fullWidth
+            label="Edad"
+            value={selectedPatient.edad} // Mostrar la edad calculada
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarTodayIcon sx={{ color: '#25aa80' }} />
+                </InputAdornment>
+              ),
+              readOnly: true,
+            }}
+            sx={{
+              borderRadius: '20px',
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '20px',
+              },
+            }}
+          />
+
+          <TextField
+            fullWidth
             multiline
             rows={4}
             label="Objetivo de la Consulta"
@@ -261,6 +283,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
         </Box>
       </Box>
 
+      {/* Modal para la búsqueda de pacientes */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

@@ -13,5 +13,6 @@ export interface Patient {
     nacimiento: string;
     registro: string;
     email: string;
+     
     detallepaciente?: DetallePaciente[];
 }

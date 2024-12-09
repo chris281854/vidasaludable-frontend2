@@ -62,7 +62,7 @@ const RecentEvaluations: React.FC = () => {
                 }
 
                 const data = await response.json();
-                console.log('Datos de evaluaciones recientes obtenidos del backend:', data);
+          //      console.log('Datos de evaluaciones recientes obtenidos del backend:', data);
 
                 if (Array.isArray(data)) {
                     const formattedData = data

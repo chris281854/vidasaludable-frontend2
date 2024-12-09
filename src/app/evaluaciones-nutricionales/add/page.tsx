@@ -1,4 +1,4 @@
-// AddEvaluacionesNutricionales.tsx
+/// src/components/AddEvaluacionesNutricionales.tsx
 
 'use client'
 
@@ -11,8 +11,14 @@ import HistorialPatologico from "../components/HistorialPatologico";
 import HistorialClinico from "../components/HistorialClinico"; 
 import EvaluacionesNutricionalesForm from "./components/EvalacionesNutricionalesForm";
 import NutritionalAnalysis from "../components/NutritionalAnalysis";
+import IMCAnalysis from '../components/IMCAnalysis';
+import IMCComparisonModal from '../components/IMCComparisonModal';
+import { useSession } from 'next-auth/react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-const AddEvaluacionesNutricionales = () => {    
+const AddEvaluacionesNutricionales = () => {  
+    const { data: session, status } = useSession(); // Obtener la sesión y su estado
+  
     const [nutritionPlan, setNutritionPlan] = useState({
         tallaMt: 1.75,
         pesoKg: 70,
@@ -22,6 +28,7 @@ const AddEvaluacionesNutricionales = () => {
         pesoMagra: 55,
     });
 
+    const [rup, setRup] = useState(""); // Estado para almacenar el RUP
     const [historialPatologico, setHistorialPatologico] = useState<string[]>([]);
     const [historialClinico, setHistorialClinico] = useState<string[]>([]);
 
@@ -34,14 +41,20 @@ const AddEvaluacionesNutricionales = () => {
     };
 
     // Función para manejar cambios en los inputs
-    const handleInputChange = (field: string, value: number) => {
+    const handleInputChange = (field: string, value: string | number) => {
         setNutritionPlan((prev) => ({
             ...prev,
             [field]: value,
         }));
     };
 
+    // Función para manejar el cambio de RUP
+    const handleRupChange = (newRup: string) => {
+        setRup(newRup); // Actualiza el estado de RUP
+    };
+
     return (
+        <ProtectedRoute>
         <EvaluacionesNutricionalesLayout>
             <div>
                 <HeaderUser title="Evaluaciones Nutricionales ~ Registro de Evaluaciones" />
@@ -49,9 +62,13 @@ const AddEvaluacionesNutricionales = () => {
                 <Box sx={{ display: 'flex' }}>
                     <Box sx={{ flex: 1, mt: 24, mr: 2 }}>
                         <EvaluacionesNutricionalesForm 
-                            nutritionPlan={nutritionPlan} 
+                            nutritionPlan={nutritionPlan}
                             onChange={handleInputChange} // Pasar la función de manejo de cambios
-                        />
+                            rup={rup} // Pasar el RUP
+                            onRupChange={handleRupChange} // Pasar la función para actualizar el RUP
+                            idMedico={0} onIdMedicoChange={function (id: number): void {
+                                throw new Error('Function not implemented.');
+                            } }                        />
                     </Box>
             
                     <Box sx={{ mt: 26, mr: 3, width: '600px', position: 'relative' }}>
@@ -62,14 +79,14 @@ const AddEvaluacionesNutricionales = () => {
                                         fotoUrl: "",
                                         nombrePaciente: "",
                                         apellidoPaciente: "",
-                                        rupPaciente: "",
+                                        rupPaciente: rup, // Usar el RUP aquí
                                         fechaRegistro: null,
                                         ciudadPaciente: "",
-                                        objetivoConsulta: ""
+                                        objetivoConsulta: "",
+                                        fechaNacimiento: "",
+                                        edad: 0, // Add the missing 'edad' property
                                     }} 
-                                    onRupChange={(rup: string): void => {
-                                        // Implementar la lógica para manejar el cambio de RUP
-                                    }} 
+                                    onRupChange={handleRupChange} // Pasar la función para manejar el cambio de RUP
                                     onPatientSelect={() => {
                                         // Implementar la lógica para manejar la selección del paciente
                                     }}
@@ -106,11 +123,32 @@ const AddEvaluacionesNutricionales = () => {
                                   pesoMagra={nutritionPlan.pesoMagra}
                                 />
                             </CardContent>
+
+                            <Card sx={{ background: 'white', boxShadow: 3, mt: 2 }}>
+                            <CardContent>
+                                <IMCAnalysis 
+                                    imc={nutritionPlan.pesoKg / (nutritionPlan.tallaMt ** 2)}
+                                />
+                            </CardContent>
+                        </Card>
+                        </Card>
+
+                        <Card sx={{ mb:10, background: 'white', boxShadow: 3, mt: 2 }}>
+                            <CardContent>
+                                <IMCComparisonModal 
+                                   tallaMt={nutritionPlan.tallaMt} 
+                                   pesoKg={nutritionPlan.pesoKg} 
+                                   pesoGraso={nutritionPlan.pesoGraso} 
+                                   pesoMagra={nutritionPlan.pesoMagra} 
+                                   imc={nutritionPlan.pesoKg / (nutritionPlan.tallaMt ** 2)} 
+                                />
+                            </CardContent>
                         </Card>
                     </Box>
                 </Box>
             </div>
         </EvaluacionesNutricionalesLayout>
+        </ProtectedRoute>
     );
 }
 

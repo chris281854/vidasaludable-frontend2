@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from "react";
 import { useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation";
@@ -21,7 +19,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import ConfirmacionFirmaDialog from "@/app/diagnostico-clinico/components/ConfirmacionFirmaDialog";
 import { LockIcon } from "lucide-react";
 
-const MedicalSignatureComponent = () => {
+interface MedicalSignatureProps {
+  onMedicoIdChange: (id: string) => void;
+}
+
+const MedicalSignatureComponent = ({ onMedicoIdChange }: MedicalSignatureProps) => { // Recibe la función para exponer el ID del médico
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -64,7 +66,7 @@ const MedicalSignatureComponent = () => {
   const buscarMedico = async () => {
     if (!session?.user?.token) {
       showNotification('No hay sesión activa', 'error');
-      return;
+      router.push('/login');
     }
   
     if (!nutritionPlan.codigoMedico) {
@@ -78,7 +80,7 @@ const MedicalSignatureComponent = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.user.token}`,
+          'Authorization': `Bearer ${session?.user?.token || ''}`,
         },
       });
   
@@ -95,6 +97,7 @@ const MedicalSignatureComponent = () => {
           especialidad: data.especialidad || ''
         }));
         showNotification('Médico encontrado exitosamente', 'success');
+        onMedicoIdChange(nutritionPlan.codigoMedico); // Exponer el ID del médico al componente padre
       } else {
         throw new Error('No se encontró ningún médico con ese código');
       }
@@ -120,6 +123,14 @@ const MedicalSignatureComponent = () => {
   };
 
   const handleLimpiar = () => {
+    setNutritionPlan({
+      codigoMedico: '',
+      nombreMedico: '',
+      apellidoMedico: '',
+      especialidad: '',
+      firmadoDigital: false,
+      fechaFirma: '',
+    });
     showNotification('Formulario limpiado exitosamente', 'success');
   };
 
@@ -144,54 +155,57 @@ const MedicalSignatureComponent = () => {
 
   const handlePasswordSubmit = async () => {
     if (!password) {
-      showNotification('La contraseña es requerida', 'warning');
-      return;
-    }
-
-    if (!session?.user?.name) {
-      showNotification('No se encontró información del usuario', 'warning');
-      return;
+        showNotification('La contraseña es requerida', 'warning');
+        return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.user?.token}`,
-        },
-        body: JSON.stringify({ 
-          name: session.user.name,
-          password: password 
-        })
-      });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.user?.token}`,
+            },
+            body: JSON.stringify({ 
+                name: session?.user?.name || '', // Asegúrate de incluir el nombre de usuario
+                password: password 
+            })
+        });
 
-      if (!response.ok) {
-        throw new Error('Error al verificar la contraseña');
-      }
+        if (!response.ok) {
+            throw new Error('Error al verificar la contraseña');
+        }
 
-      const data = await response.json();
-      
-      if (data) {
-        setNutritionPlan(prev => ({
-          ...prev,
-          firmadoDigital: true, // Asegúrate de que este valor se establezca en true
-          firmadoPor: session?.user?.name || '',
-          fechaFirma: new Date().toISOString()
-        }));
-        setOpenPasswordModal(false);
-        setPassword('');
-        showNotification('Firma digital realizada con éxito', 'success');
-      } else {
-        showNotification('Contraseña incorrecta', 'error');
-      }
+        const data = await response.json();
+        
+        if (data) {
+            setNutritionPlan(prev => ({
+                ...prev,
+                firmadoDigital: true, // Asegúrate de que este valor se establezca en true
+                fechaFirma: new Date().toISOString()
+            }));
+            setOpenPasswordModal(false);
+            setPassword('');
+            showNotification('Firma digital realizada con éxito', 'success');
+        } else {
+            showNotification('Contraseña incorrecta', 'error');
+        }
     } catch (error) {
-      console.error('Error:', error);
-      showNotification('La contraseña ingresada no es correcta', 'error');
+        console.error('Error:', error);
+        showNotification('La contraseña ingresada no es correcta', 'error');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
+};
+
+  // Manejar el cambio en el input de ID Médico
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNutritionPlan((prev) => ({
+      ...prev,
+      [name]: value, // Actualiza el estado con el nuevo valor
+    }));
   };
 
   return (
@@ -210,12 +224,13 @@ const MedicalSignatureComponent = () => {
                       variant="outlined"
                       name="codigoMedico"
                       value={nutritionPlan.codigoMedico}
+                      onChange={handleInputChange} // Agregar el manejador de cambios aquí
                       sx={{ mb: 2, borderRadius: '20px' }}
-                        InputProps={{
-                            sx: {
-                                borderRadius: '20px',
-                            },
-                        }}
+                      InputProps={{
+                        sx: {
+                          borderRadius: '20px',
+                        },
+                      }}
                     />
                     <IconButton 
                       onClick={buscarMedico}
@@ -241,11 +256,11 @@ const MedicalSignatureComponent = () => {
                     variant="outlined"
                     value={`${nutritionPlan.nombreMedico} ${nutritionPlan.apellidoMedico}`.trim()}
                     sx={{ mb: 2, borderRadius: '20px' }}
-                        InputProps={{
-                            sx: {
-                                borderRadius: '20px',
-                            },
-                        }}
+                    InputProps={{
+                      sx: {
+                        borderRadius: '20px',
+                      },
+                    }}
                   />
                   <TextField
                     fullWidth
@@ -254,9 +269,9 @@ const MedicalSignatureComponent = () => {
                     value={nutritionPlan.especialidad}
                     sx={{ mb: 2, borderRadius: '20px' }}
                     InputProps={{
-                        sx: {
-                            borderRadius: '20px',
-                        },
+                      sx: {
+                        borderRadius: '20px',
+                      },
                     }}
                   />
                 </div>
@@ -289,12 +304,10 @@ const MedicalSignatureComponent = () => {
               {nutritionPlan.firmadoDigital && (
                 <Box sx={{ marginTop: 2, padding: 2, border: '1px solid #25aa80', borderRadius: '8px', backgroundColor: '#f0f8f0' }}>
                   <Typography variant="body1">
-                    El plan nutricional ha sido firmado por el usuario <strong>{nutritionPlan.nombreMedico + " " +nutritionPlan.apellidoMedico}</strong> en fecha <strong>{new Date(nutritionPlan.fechaFirma).toLocaleDateString()}</strong> y hora <strong>{new Date(nutritionPlan.fechaFirma).toLocaleTimeString()}</strong>.
+                    El plan nutricional ha sido firmado por el médico <strong>{nutritionPlan.nombreMedico + " " +nutritionPlan.apellidoMedico}</strong> en fecha <strong>{new Date(nutritionPlan.fechaFirma).toLocaleDateString()}</strong> y hora <strong>{new Date(nutritionPlan.fechaFirma).toLocaleTimeString()}</strong>.
                   </Typography>
                 </Box>
               )}
-
-             
             </div>
           </div>
 
