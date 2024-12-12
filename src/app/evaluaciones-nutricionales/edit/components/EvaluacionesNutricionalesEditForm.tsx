@@ -3,8 +3,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Card, CardContent, TextField, Button, IconButton } from '@mui/material';
-import SectionDivider from '@/components/SectionDivider';
+import { Box, Card, CardContent, TextField, IconButton } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import NutritionEvaluationModal from './NutritionEvaluationModal'; // Importar el nuevo componente
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -14,7 +13,7 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
     const { data: session } = useSession(); // Obtener la sesión
     const [openNutritionModal, setOpenNutritionModal] = useState(false); // Estado para controlar el modal
     const [idEvaluacion, setIdEvaluacion] = useState<number | null>(null); // Estado para el ID de evaluación
-    const [evaluacionData, setEvaluacionData] = useState<any>(null); // Estado para almacenar los datos de la evaluación
+    const [evaluacionData, setEvaluacionData] = useState<any[]>([]); // Estado para almacenar los datos de la evaluación
 
     const handleKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
@@ -30,7 +29,7 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
     const fetchEvaluacionData = async () => {
        
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/evaluaciones-nutricionales`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/evaluaciones-nutricionales/`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${session?.user?.token}`,
@@ -48,7 +47,7 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
             } catch (error) {
                 console.error('Error:', error);
             }
-        
+       
     };
 
     return (

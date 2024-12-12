@@ -10,11 +10,11 @@ interface NutritionEvaluationModalProps {
     evaluationData: any[]; // Cambia esto a un tipo más específico si es necesario
 }
 
-const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ open, onClose, evaluationData }) => {
+const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ open, onClose, evaluationData = [] }) => {
     const [filter, setFilter] = useState('');
 
     // Filtrar los datos según el input
-    const filteredData = evaluationData.filter(evaluation  => {
+    const filteredData = evaluationData.filter(evaluation => {
         const fullName = `${evaluation.paciente?.nombre} ${evaluation.paciente?.apellido}`.toLowerCase();
         return (
             evaluation.idEvaluacion.toString().includes(filter.toLowerCase()) ||
@@ -22,21 +22,26 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
         );
     }).slice(0, 10); // Limitar a 10 registros
 
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? 'Fecha inválida' : date.toLocaleDateString();
+    };
+
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={{ 
-                width: '80%', 
-                maxWidth: 800, 
+                width: '80%', // Aumentar el ancho del modal
+                maxWidth: 800, // Ancho máximo
                 bgcolor: 'background.paper', 
                 p: 4, 
                 borderRadius: 2, 
                 boxShadow: 24, 
-                position: 'absolute', 
+                position: 'absolute', // Centrar el modal
                 top: '50%', 
                 left: '50%', 
-                transform: 'translate(-50%, -50%)', 
+                transform: 'translate(-50%, -50%)', // Centrado
             }}>
-                <Typography  color='success' variant="h6" component="h2" align="center">
+                <Typography color="success.main" variant="h6" component="h2" align="center">
                     Detalles de la Evaluación Nutricional
                 </Typography>
 
@@ -65,10 +70,10 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
                         <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell sx={{ backgroundColor: '#e0f2f1', fontWeight: 'bold' }}><strong>ID de Evaluación</strong></TableCell>
-                                    <TableCell sx={{ backgroundColor: '#e0f2f1', fontWeight: 'bold' }}><strong>Nombre del Paciente</strong></TableCell>
-                                    <TableCell sx={{ backgroundColor: '#e0f2f1', fontWeight: 'bold' }}><strong>Fecha de Evaluación</strong></TableCell>
-                                    <TableCell sx={{ backgroundColor: '#e0f2f1', fontWeight: 'bold' }}><strong>Próxima Cita</strong></TableCell>
+                                    <TableCell sx={{ backgroundColor: '#4caf50', color: 'white', fontWeight: 'bold' }}><strong>ID de Evaluación</strong></TableCell>
+                                    <TableCell sx={{ backgroundColor: '#4caf50', color: 'white', fontWeight: 'bold' }}><strong>Nombre del Paciente</strong></TableCell>
+                                    <TableCell sx={{ backgroundColor: '#4caf50', color: 'white', fontWeight: 'bold' }}><strong>Fecha de Evaluación</strong></TableCell>
+                                    <TableCell sx={{ backgroundColor: '#4caf50', color: 'white', fontWeight: 'bold' }}><strong>Próxima Cita</strong></TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -76,7 +81,7 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
                                     <TableRow key={evaluation.idEvaluacion}>
                                         <TableCell>{evaluation.idEvaluacion}</TableCell>
                                         <TableCell>{evaluation.paciente?.nombre} {evaluation.paciente?.apellido}</TableCell>
-                                        <TableCell>{evaluation.fechaEvaluacion}</TableCell>
+                                        <TableCell>{formatDate(evaluation.fechaEvaluacion)}</TableCell> {/* Formatear la fecha */}
                                         <TableCell>{evaluation.proximaCita}</TableCell>
                                     </TableRow>
                                 ))}
@@ -86,10 +91,11 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
                 ) : (
                     <Typography>No se encontraron datos.</Typography>
                 )}
-                <div className="flex justify-start">
-                <Button onClick={onClose} variant="contained" sx={{ color:'success', mt: 2, display: 'block', margin: '0 auto' }}>
-                    Cerrar
-                </Button>
+               
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '16px' }}>
+                    <Button onClick={onClose} color="success" variant="contained" sx={{ borderRadius: '20px' }}>
+                        Cerrar
+                    </Button>
                 </div>
             </Box>
         </Modal>
