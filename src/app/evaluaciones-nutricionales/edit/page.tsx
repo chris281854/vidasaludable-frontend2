@@ -63,14 +63,8 @@ const EvaluacionesNutricionalesEditPage = () => {
                 <Box sx={{ display: 'flex' }}>
                     <Box sx={{ flex: 1, mt: 24, mr: 2 }}>
                         <EvaluacionesNutricionalesEditForm 
-                                nutritionPlan={nutritionPlan}
-                                onChange={handleInputChange} // Pasar la función de manejo de cambios
-                                rup={rup} // Pasar el RUP
-                                onRupChange={handleRupChange} // Pasar la función para actualizar el RUP
-                                idMedico={0}
-                                onIdMedicoChange={(id: number) => { } } evaluationId={0} onEvaluationLoad={function (id: number): Promise<void> {
-                                    throw new Error('Function not implemented.');
-                                } }                        />
+                            
+                                            />
                     </Box>
     
                     <Box sx={{ mt: 26, mr: 3, width: '600px', position: 'relative' }}>

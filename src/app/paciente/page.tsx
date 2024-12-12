@@ -7,6 +7,7 @@ import PatientList from "./components/pacienteList";
 import RightBar from "./components/RightBar";
 import { Button } from "@mui/material";
 import FilterInput from "../../components/FilterButon";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 interface SidebarProps {
     initialExpanded?: boolean;
@@ -28,6 +29,8 @@ const PacienteDashboard: React.FC = () => {
     }, [filterText]);
 
     return (
+        <ProtectedRoute>
+
         <div className="flex h-screen bg-white">
             <Sidebar 
                 initialExpanded={isExpanded}
@@ -74,6 +77,8 @@ const PacienteDashboard: React.FC = () => {
                 </div>
             </div>
         </div>
+        </ProtectedRoute>
+
     );
 };
 

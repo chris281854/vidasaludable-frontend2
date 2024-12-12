@@ -20,7 +20,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import ConfirmacionFirmaDialog from "@/app/diagnostico-clinico/components/ConfirmacionFirmaDialog";
 import { LockIcon } from "lucide-react";
-import useNutritionPlan from "../../hooks/useNutritionPlan" // Asegúrate de que la ruta sea correcta
+import useNutritionPlan from "../../../hooks/useNutritionPlan" // Asegúrate de que la ruta sea correcta
 
 const MedicalSignatureComponent = () => {
   const { data: session } = useSession();

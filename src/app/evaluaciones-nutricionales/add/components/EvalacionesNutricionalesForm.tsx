@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { Box, Card, CardContent, TextField, Button, Modal, Typography } from '@mui/material';
 import SectionDivider from '@/components/SectionDivider';
 import MedicalSignatureComponent from '@/components/MedicalSignature';
-import useSaveNutritionEvaluation from '@/app/planes-nutricionales/hooks/evaluacion-nutricional/useSaveNutritionEvaluation';
+import useSaveNutritionEvaluation from '@/app/hooks/evaluacion-nutricional/useSaveNutritionEvaluation';
 import { useSession } from 'next-auth/react';
 import { CheckCircleIcon } from 'lucide-react';
 

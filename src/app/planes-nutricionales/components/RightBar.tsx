@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image'; // Importar el componente Image
 import { Button, Card, CardContent, Typography } from '@mui/material';
-import useRecentPatients from '../hooks/useRecentPatients';
+import useRecentPatients from '../../hooks/useRecentPatients';
 import PatientSkeleton from './PatientSkeleton';
 
 const RightBar: React.FC = () => {

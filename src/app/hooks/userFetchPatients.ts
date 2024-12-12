@@ -1,7 +1,7 @@
 // src/hooks/useFetchPatients.ts
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Patient } from '../interfaces/interfases';
+import { Patient } from '../planes-nutricionales/interfaces/interfases';
 
 const useFetchPatients = () => {
   const { data: session } = useSession();

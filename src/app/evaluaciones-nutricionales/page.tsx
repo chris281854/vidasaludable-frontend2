@@ -27,7 +27,7 @@ const EvaluacionesNutricionales = () => {
     return (
         <EvaluacionesNutricionalesLayout>
             <Box sx={{ p: 4 }}>
-                <HeaderUser title='Gestion de Pacientes ~ Agregar Nuevo Paciente' />
+                <HeaderUser title='Gestion de Evaluaciones de Nutricion ~ Dashboard' />
 
                 <div className="p-8 pl-24 mt-48">
                     <div className="flex flex-col gap-8 mb-8">

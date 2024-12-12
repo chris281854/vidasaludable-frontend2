@@ -5,7 +5,7 @@ import { FaSave } from 'react-icons/fa';
 import { GrClearOption } from "react-icons/gr";
 import { MdAddTask } from 'react-icons/md';
 import { FaDeleteLeft } from 'react-icons/fa6';
-import useNutritionPlan from '../../hooks/useNutritionPlan'; // Importa el hook
+import useNutritionPlan from '../../../hooks/useNutritionPlan'; // Importa el hook
 import { useFormContext } from '../../context/FormContext'; // Asegúrate de que este sea el contexto correcto
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 

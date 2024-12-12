@@ -5,9 +5,12 @@ import RecentPatients from '../components/RightBar';
 import PacienteLayout from '../PacienteLayout';
 import HeaderUser from '../../../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function EditPatientPage() {
     return (
+      <ProtectedRoute>
+
       <PacienteLayout>
         <Box sx={{ p: 4 }}>
           <HeaderUser title='Gestion de Pacientes ~ Editar Paciente' />
@@ -32,5 +35,7 @@ export default function EditPatientPage() {
           </Box>
         </Box>
       </PacienteLayout>
+      </ProtectedRoute>
+
     );
 }
