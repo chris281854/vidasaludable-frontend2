@@ -5,22 +5,66 @@
 import React, { useState } from 'react';
 import { Box, Card, CardContent, TextField, IconButton, Button, CircularProgress, Snackbar } from '@mui/material';
 import { useSession } from 'next-auth/react';
-import NutritionEvaluationModal from './NutritionEvaluationModal'; // Importar el nuevo componente
+import NutritionEvaluationModal from '../../edit/components/NutritionEvaluationModal'; // Importar el nuevo componente
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { SearchIcon, InfoIcon } from 'lucide-react'; // Asegúrate de tener estos íconos disponibles
 import MedicalSignatureComponent from '@/components/MedicalSignature';
 import SectionDivider from '@/components/SectionDivider';
-import useUpdateNutritionEvaluation from '@/app/hooks/evaluacion-nutricional/useUpdateNutritionEvaluation';
+import PatientRightBar from '@/components/PatientRightBar';
+import HistorialPatologico from '../../components/HistorialPatologico';
+import HistorialClinico from '../../components/HistorialClinico';
+import NutritionalAnalysis from '../../components/NutritionalAnalysis';
+import IMCAnalysis from '../../components/IMCAnalysis';
+import IMCComparisonModal from '../../components/IMCComparisonModal';
+import useDeleteNutritionEvaluation from '@/app/hooks/evaluacion-nutricional/useDeleteNutritionEvaluation';
 
-const EvaluacionesNutricionalesEditForm: React.FC = () => {
+const EvaluacionesNutricionalesDeleteForm: React.FC = () => {
     const { data: session } = useSession(); // Obtener la sesión
     const [openNutritionModal, setOpenNutritionModal] = useState(false); // Estado para controlar el modal
     const [idEvaluacion, setIdEvaluacion] = useState<number | null>(null); // Estado para el ID de evaluación
     const [evaluacionData, setEvaluacionData] = useState<any[]>([]); // Estado para almacenar los datos de la evaluación
     const [formData, setFormData] = useState<any>({}); // Estado para los datos del formulario
-    const { updateNutritionEvaluation, loading, error } = useUpdateNutritionEvaluation(); // Usar el hook
+    const { deleteNutritionEvaluation, loading, error } = useDeleteNutritionEvaluation(); // Usar el hook
 
     const [snackbarOpen, setSnackbarOpen] = useState(false); // Estado para el Snackbar
+
+
+
+    const [nutritionPlan, setNutritionPlan] = useState({
+        tallaMt: 1.75,
+        pesoKg: 70,
+        indiceCintura: 80,
+        indiceCadera: 95,
+        pesoGraso: 15,
+        pesoMagra: 55,
+    });
+
+    const [rup, setRup] = useState(""); // Estado para almacenar el RUP
+    const [historialPatologico, setHistorialPatologico] = useState<string[]>([]);
+    const [historialClinico, setHistorialClinico] = useState<string[]>([]);
+
+    const handleRemoveHistorialPatologico = (index: number) => {
+        setHistorialPatologico(historialPatologico.filter((_, i) => i !== index));
+    };
+
+    const handleRemoveHistorialClinico = (index: number) => {
+        setHistorialClinico(historialClinico.filter((_, i) => i !== index));
+    };
+
+    // Función para manejar cambios en los inputs
+    const handleInputChange = (field: string, value: string | number) => {
+        setNutritionPlan((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
+    // Función para manejar el cambio de RUP
+    const handleRupChange = (newRup: string) => {
+        setRup(newRup); // Actualiza el estado de RUP
+    };
+
+
 
     const handleKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
@@ -137,6 +181,10 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
             farmacos: evaluation.farmacos,
             otrasRecomendaciones: evaluation.otrasRecomendaciones,
             proximaCita: evaluation.proximaCita,
+            paciente:{
+                pacientname: evaluation.paciente.pacientname,
+            }
+            
         });
         setOpenNutritionModal(false); // Cerrar el modal después de seleccionar
     };
@@ -186,8 +234,10 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
                 userName: formData.userName,
             };
     
-            await updateNutritionEvaluation(formData.idEvaluacion, dataToUpdate);
-            setSnackbarOpen(true); // Mostrar Snackbar de éxito
+            await deleteNutritionEvaluation(formData.idEvaluacion, dataToUpdate);
+            setSnackbarMessage('Evaluación eliminada con éxito');
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
             clearFields;
         } catch (error) {
             console.error('Error al actualizar la evaluación:', error);
@@ -717,7 +767,7 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
                                 disabled={loading} // Deshabilitar el botón mientras se guarda
                                 sx={{ borderRadius: '20px', padding: '10px 20px', mr: 2 }}
                             >
-                                {loading ? <CircularProgress size={24} /> : 'Actualizar Evaluación'}
+                                {loading ? <CircularProgress size={24} /> : 'Eliminar Evaluación'}
                             </Button>
 
                             <Button
@@ -727,7 +777,7 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
                                 disabled={loading} // Deshabilitar el botón mientras se guarda
                                 sx={{ borderRadius: '20px', padding: '10px 20px',ml: 2 }}
                             >
-                                {loading ? <CircularProgress size={24} /> : 'Limpiar Campos'}
+                                Limpiar Campos
                             </Button>
                         </Box>
 
@@ -749,8 +799,92 @@ const EvaluacionesNutricionalesEditForm: React.FC = () => {
                     </CardContent>
                 </Card>
             </Box>
+
+
+            <Box sx={{ mt: 26, mr: 3, width: '600px', position: 'relative' }}>
+                        <Card sx={{ background: 'white', boxShadow: 3, mb: 2 }}>
+                            <CardContent>
+                                <PatientRightBar 
+                                    patientData={{
+                                        fotoUrl: "",
+                                        nombrePaciente: formData.paciente?.pacientname || '',
+                                        apellidoPaciente: "",
+                                        rupPaciente: rup, // Usar el RUP aquí
+                                        fechaRegistro: null,
+                                        ciudadPaciente: "",
+                                        objetivoConsulta: "",
+                                        fechaNacimiento: "",
+                                        edad: 0, // Add the missing 'edad' property
+                                    }} 
+                                    onRupChange={handleRupChange} // Pasar la función para manejar el cambio de RUP
+                                    onPatientSelect={() => {
+                                        // Implementar la lógica para manejar la selección del paciente
+                                    }}
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card sx={{ background: 'white', boxShadow: 3, mb: 2 }}>
+                            <CardContent>
+                                <HistorialPatologico 
+                                    historial={historialPatologico} 
+                                    onAddHistorial={(nuevoHistorial) => setHistorialPatologico([...historialPatologico, nuevoHistorial])} 
+                                    onRemoveHistorial={handleRemoveHistorialPatologico} 
+                                />
+                            </CardContent>
+                        </Card>
+                        <Card sx={{ background: 'white', boxShadow: 3 }}>
+                            <CardContent>
+                                <HistorialClinico 
+                                    historial={historialClinico} 
+                                    onAddHistorial={(nuevoHistorial) => setHistorialClinico([...historialClinico, nuevoHistorial])} 
+                                    onRemoveHistorial={handleRemoveHistorialClinico} 
+                                />
+                            </CardContent>
+                        </Card>
+
+                        <Card sx={{ background: 'white', boxShadow: 3, mt: 14 }}>
+                            <CardContent>
+                                <NutritionalAnalysis 
+                                  tallaMt={nutritionPlan.tallaMt}
+                                  pesoKg={nutritionPlan.pesoKg}
+                                  indiceCintura={nutritionPlan.indiceCintura}
+                                  indiceCadera={nutritionPlan.indiceCadera}
+                                  pesoGraso={nutritionPlan.pesoGraso}
+                                  pesoMagra={nutritionPlan.pesoMagra}
+                                />
+                            </CardContent>
+
+                            <Card sx={{ background: 'white', boxShadow: 3, mt: 2 }}>
+                                <CardContent>
+                                    <IMCAnalysis 
+                                        imc={nutritionPlan.pesoKg / (nutritionPlan.tallaMt ** 2)}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </Card>
+
+                        <Card sx={{ mb:10, background: 'white', boxShadow: 3, mt: 2 }}>
+                            <CardContent>
+                                <IMCComparisonModal 
+                                   tallaMt={nutritionPlan.tallaMt} 
+                                   pesoKg={nutritionPlan.pesoKg} 
+                                   pesoGraso={nutritionPlan.pesoGraso} 
+                                   pesoMagra={nutritionPlan.pesoMagra} 
+                                   imc={nutritionPlan.pesoKg / (nutritionPlan.tallaMt ** 2)} 
+                                />
+                            </CardContent>
+                        </Card>
+                    </Box>
         </ProtectedRoute>
     );
 }
 
-export default EvaluacionesNutricionalesEditForm;
+export default EvaluacionesNutricionalesDeleteForm;
+
+function setSnackbarMessage(arg0: string) {
+    throw new Error('Function not implemented.');
+}
+function setSnackbarSeverity(arg0: string) {
+    throw new Error('Function not implemented.');
+}
+
