@@ -23,7 +23,8 @@ const useUpdateNutritionEvaluation = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Error al actualizar la evaluación nutricional');
+                const errorData = await response.json(); // Obtener el mensaje de error del backend
+                throw new Error(errorData.message || 'Error al actualizar la evaluación nutricional');
             }
 
             const result = await response.json();

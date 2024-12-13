@@ -8,9 +8,10 @@ interface NutritionEvaluationModalProps {
     open: boolean;
     onClose: () => void;
     evaluationData: any[]; // Cambia esto a un tipo más específico si es necesario
+    onSelectEvaluation: (evaluation: any) => void; // Nueva prop para manejar la selección
 }
 
-const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ open, onClose, evaluationData = [] }) => {
+const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ open, onClose, evaluationData = [], onSelectEvaluation }) => {
     const [filter, setFilter] = useState('');
 
     // Filtrar los datos según el input
@@ -20,26 +21,26 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
             evaluation.idEvaluacion.toString().includes(filter.toLowerCase()) ||
             fullName.includes(filter.toLowerCase())
         );
-    }).slice(0, 10); // Limitar a 10 registros
+    }).slice(0, 5); // Limitar a 5 registros
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return isNaN(date.getTime()) ? 'Fecha inválida' : date.toLocaleDateString();
+        return isNaN(date.getDate()) ? 'Fecha inválida' : date.toLocaleDateString();
     };
 
     return (
         <Modal open={open} onClose={onClose}>
             <Box sx={{ 
-                width: '80%', // Aumentar el ancho del modal
-                maxWidth: 800, // Ancho máximo
+                width: '80%', 
+                maxWidth: 800, 
                 bgcolor: 'background.paper', 
                 p: 4, 
                 borderRadius: 2, 
                 boxShadow: 24, 
-                position: 'absolute', // Centrar el modal
+                position: 'absolute', 
                 top: '50%', 
                 left: '50%', 
-                transform: 'translate(-50%, -50%)', // Centrado
+                transform: 'translate(-50%, -50%)', 
             }}>
                 <Typography color="success.main" variant="h6" component="h2" align="center">
                     Detalles de la Evaluación Nutricional
@@ -78,10 +79,13 @@ const NutritionEvaluationModal: React.FC<NutritionEvaluationModalProps> = ({ ope
                             </TableHead>
                             <TableBody>
                                 {filteredData.map((evaluation) => (
-                                    <TableRow key={evaluation.idEvaluacion}>
+                                    <TableRow 
+                                        key={evaluation.idEvaluacion} 
+                                        onDoubleClick={() => onSelectEvaluation(evaluation)} // Manejar el doble clic
+                                    >
                                         <TableCell>{evaluation.idEvaluacion}</TableCell>
                                         <TableCell>{evaluation.paciente?.nombre} {evaluation.paciente?.apellido}</TableCell>
-                                        <TableCell>{formatDate(evaluation.fechaEvaluacion)}</TableCell> {/* Formatear la fecha */}
+                                        <TableCell>{formatDate(evaluation.fechaEvaluacion)}</TableCell>
                                         <TableCell>{evaluation.proximaCita}</TableCell>
                                     </TableRow>
                                 ))}
