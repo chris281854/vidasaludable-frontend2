@@ -28,7 +28,7 @@ interface EvaluacionesNutricionalesFormProps {
 }
 
 const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps> = ({ nutritionPlan, onChange, rup, onRupChange }) => {
-    const { data: session } = useSession(); // Obtener la sesión
+    const { data: session } = useSession();
     const [formData, setFormData] = useState<{ [key: string]: any }>({
         idEvaluacion: 0,
         rup: "",
@@ -71,31 +71,112 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
         userName: "",
     });
 
-    const [openModal, setOpenModal] = useState(false); // Estado para controlar el modal
-    const { saveNutritionEvaluation, loading, error } = useSaveNutritionEvaluation(); // Usar el hook
+    const [openModal, setOpenModal] = useState(false);
+    const { saveNutritionEvaluation, loading, error } = useSaveNutritionEvaluation();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-
+    
         // Verificar si el campo es de tipo "date"
         if (name === "proximaCita") {
             setFormData((prevData) => ({ ...prevData, [name]: value }));
-            onChange(name, value); // Llama a la función onChange con el valor de la fecha (string)
+            onChange(name, value);
         } else {
             const numericValue = parseFloat(value);
-            setFormData((prevData) => ({ ...prevData, [name]: value })); // Mantén el valor como string para campos de texto
-            if (!isNaN(numericValue)) {
-                onChange(name, numericValue); // Llama a la función onChange con el valor numérico
+            
+            // Si el campo está vacío, se asigna un valor por defecto
+            if (value === "") {
+                setFormData((prevData) => ({ ...prevData, [name]: null }));
+                onChange(name, "");
             } else {
-                onChange(name, value); // Llama a la función onChange con el valor de texto
+                setFormData((prevData) => ({ ...prevData, [name]: value }));
+                if (!isNaN(numericValue)) {
+                    onChange(name, numericValue);
+                } else {
+                    onChange(name, value);
+                }
             }
         }
+    
+        // Realizar conversiones y cálculos para campos específicos
+        if (name === "tallaMt") {
+            const tallaMt = value ? parseFloat(value) : 0; // Convertir metros a centímetros (validación)
+            const cm = tallaMt * 100;
+            const feet = tallaMt * 3.28084;
+            const inches = feet * 12;
+    
+            // Validación antes de actualizar el estado
+            setFormData((prevData) => ({
+                ...prevData,
+                tallaCm: cm || null,
+                tallaPie: feet || null,
+                tallaPgs: inches || null,
+            }));
+        }
+    
+        if (name === "pesoLb") {
+            const pesoLb = value ? parseFloat(value) : 0; // Validación de libras
+            const kg = pesoLb * 0.453592;
+    
+            // Validación antes de actualizar el estado
+            setFormData((prevData) => ({
+                ...prevData,
+                pesoKg: kg || null,
+            }));
+        }
+    
+        // Calcular IMC y otros valores si los datos están disponibles
+        calculateNutritionMetrics();
     };
-
-
+    
+    const calculateNutritionMetrics = () => {
+        const { tallaMt, pesoKg, indiceCintura, indiceCadera } = formData;
+    
+        // Verificar que los valores no sean null o cero antes de hacer cálculos
+        if (tallaMt && pesoKg && tallaMt > 0 && pesoKg > 0 && tallaMt != null && pesoKg != null) {
+            const imc = pesoKg / (tallaMt ** 2);
+            const grasaViceral = calculateGrasaViceral(imc);
+            const metabolismo = calculateMetabolismo(pesoKg, tallaMt);
+            const porcientoGrasa = calculatePorcentajeGrasa(imc);
+            const pesoGraso = (porcientoGrasa / 100) * pesoKg;
+            const pesoMagro = pesoKg - pesoGraso;
+    
+            setFormData((prevData) => ({
+                ...prevData,
+                IMC: imc,
+                grasaViceral,
+                metabolismo,
+                porcientoGrasa,
+                pesoGraso,
+                pesoMagro,
+            }));
+        }
+    
+        // Calcular índices de cintura y cadera si están disponibles
+        if (indiceCintura && indiceCadera && indiceCintura > 0 && indiceCadera > 0) {
+            // Aquí puedes agregar la lógica para calcular los índices si es necesario
+        }
+    };
+    
+    const calculateGrasaViceral = (imc: number): number => {
+        // Implementa la lógica para calcular la grasa visceral
+        return imc * 0.1; // Ejemplo simple, ajusta según tus estándares
+    };
+    
+    const calculateMetabolismo = (pesoKg: number, tallaMt: number): number => {
+        // Implementa la lógica para calcular el metabolismo
+        return 10 * pesoKg + 6.25 * (tallaMt * 100) - 5 * 30 + 5; // Ejemplo simple para hombres
+    };
+    
+    const calculatePorcentajeGrasa = (imc: number): number => {
+        // Implementa la lógica para calcular el porcentaje de grasa corporal
+        return (imc - 20) * 0.5; // Ejemplo simple, ajusta según tus estándares
+    };
+    
     const handleCloseModal = () => {
         setOpenModal(false);
     };
+    
 
     const clearFields = () => {
         setFormData({
@@ -138,8 +219,6 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
             otrasRecomendaciones: "",
             proximaCita: "",
             userName: "",
-            nombreMedico: "",
-            apellidoMedico: "",
         });
         setOpenModal(false);
     };
@@ -150,9 +229,8 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
             return; // No continuar si no hay sesión
         }
 
-        // Crear un objeto con todos los campos necesarios
         const dataToSend = {
-            rup: rup, // Asegúrate de que 'rup' tenga un valor válido
+            rup: rup,
             objetivo: formData.objetivo,
             motivoConsulta: formData.motivoConsulta,
             alergias: formData.alergias,
@@ -161,44 +239,42 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
             analiticas: formData.analiticas,
             tratamientos: formData.tratamientos,
             observaciones: formData.observaciones,
-            funcionIntestinal: formData.funcionIntestinal || "", // Asegúrate de que sea un string
-            funcionSueno: formData.funcionSuneo || "", // Asegúrate de que sea un string
-            nivelActividad: formData.nivelActividad || "", // Asegúrate de que sea un string
-            ingestaAlcoholica: formData.ingestaAlcoholica || "", // Asegúrate de que sea un string
-            nivelesAnciedad: formData.nivelAnciedad || "", // Asegúrate de que sea un string
-            otrasInformaciones: formData.otrasInformaciones || "", // Asegúrate de que sea un string
-            tallaMt: Number(formData.tallaMt) || 0, // Asegúrate de que sea un número
+            funcionIntestinal: formData.funcionIntestinal || "",
+            funcionSueno: formData.funcionSuneo || "",
+            nivelActividad: formData.nivelActividad || "",
+            ingestaAlcoholica: formData.ingestaAlcoholica || "",
+            nivelesAnciedad: formData.nivelAnciedad || "",
+            otrasInformaciones: formData.otrasInformaciones || "",
+            tallaMt: Number(formData.tallaMt) || 0,
             tallaCm: Number(formData.tallaCm) || 0,
             tallaPie: Number(formData.tallaPie) || 0,
-            tallaPgs: Number(formData.tallaPgs) || 0, // Agregado
+            tallaPgs: Number(formData.tallaPgs) || 0,
             pesoLb: Number(formData.pesoLb) || 0,
-            tallaKg: Number(formData.pesoKg) || 0, // Agregado
+            tallaKg: Number(formData.pesoKg) || 0,
             indiceCadera: Number(formData.indiceCadera) || 0,
             indiceCintura: Number(formData.indiceCintura) || 0,
-            IMC: Number(formData.pesoKg) / (Number(formData.tallaMt) ** 2) || 0, // Cálculo del IMC
-            porcientoGrasa: Number(formData.porcientoGrasa) || 0, // Agregado
-            grasaViceral: Number(formData.grasaViceral) || 0, // Agregado
-            pesoGraso: Number(formData.pesoGraso) || 0, // Agregado
-            metabolismo: Number(formData.metabolismo) || 0, // Agregado
-            pesoMagro: Number(formData.pesoMagro) || 0, // Agregado
-            diagnosticoNutricional: formData.diagnosticoNutricional || "", // Asegúrate de que sea un string
-            conclusionMedica: formData.conclusionMedica || "", // Asegúrate de que sea un string
-            idMedico: Number(formData.idMedico) || 0, // Asegúrate de que sea un número entero
-            analiticasRecomendadas: formData.analiticasRecomendadas || "", // Asegúrate de que sea un string
-            liquidoRecomendado: formData.liquidoRecomendado || "", // Asegúrate de que sea un string
-            farmacos: formData.farmacos || "", // Asegúrate de que sea un string
-            otrasRecomendaciones: formData.otrasRecomendaciones || "", // Asegúrate de que sea un string
-            proximaCita: formData.proximaCita || new Date().toISOString(), // Asegúrate de que sea una fecha válida
-            userName: session.user.name, // Asegúrate de que el nombre de usuario esté disponible
+            IMC: Number(formData.IMC) || 0,
+            porcientoGrasa: Number(formData.porcientoGrasa) || 0,
+            grasaViceral: Number(formData.grasaViceral) || 0,
+            pesoGraso: Number(formData.pesoGraso) || 0,
+            metabolismo: Number(formData.metabolismo) || 0,
+            pesoMagro: Number(formData.pesoMagro) || 0,
+            diagnosticoNutricional: formData.diagnosticoNutricional || "",
+            conclusionMedica: formData.conclusionMedica || "",
+            idMedico: Number(formData.idMedico) || 0,
+            analiticasRecomendadas: formData.analiticasRecomendadas || "",
+            liquidoRecomendado: formData.liquidoRecomendado || "",
+            farmacos: formData.farmacos || "",
+            otrasRecomendaciones: formData.otrasRecomendaciones || "",
+            proximaCita: formData.proximaCita || new Date().toISOString(),
+            userName: session.user.name,
         };
 
-        // Validar que 'rup' no esté vacío
         if (!dataToSend.rup) {
             console.error('El campo "rup" no puede estar vacío.');
             return;
         }
 
-        // Validar que los campos numéricos sean válidos
         const numericFields: (keyof typeof dataToSend)[] = ['tallaMt', 'tallaCm', 'tallaPie', 'pesoLb', 'indiceCadera', 'indiceCintura', 'tallaKg'];
         for (const key of numericFields) {
             if (isNaN(dataToSend[key]) || dataToSend[key] < 0) {
@@ -208,11 +284,11 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
         }
 
         try {
-            const response = await saveNutritionEvaluation(dataToSend); // Llamar a la función para guardar
+            const response = await saveNutritionEvaluation(dataToSend);
             if (response) {
                 console.log('Evaluación nutricional guardada con éxito:', response);
-                setOpenModal(true); // Abre el modal al guardar con éxito
-                clearFields(); // Limpia los campos después de guardar
+                setOpenModal(true);
+                clearFields();
             }
         } catch (error) {
             console.error('Error al guardar la evaluación nutricional:', error);
@@ -712,68 +788,66 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
                 </CardContent>
             </Card>
 
-           
-          {/* Modal de confirmación */}
-                <Modal
-                    open={openModal}
-                    onClose={handleCloseModal}
-                    aria-labelledby="modal-title"
-                    aria-describedby="modal-description"
+            {/* Modal de confirmación */}
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-title"
+                aria-describedby="modal-description"
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #4caf50',
+                    boxShadow: 24,
+                    p: 4,
+                    borderRadius: 2,
+                }}>
+                    <Typography id="modal-title" variant="h6" component="h2" sx={{ display: 'flex', alignItems: 'center', color: '#4caf50' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                            <CheckCircleIcon style={{ color: '#cc0000' }} />
+                        </Box>
+                        Evaluación Nutricional Guardada
+                    </Typography>
+                    <Typography id="modal-description" sx={{ mt: 2, color: '#0a0a0a' }}>
+                        La evaluación nutricional ha sido guardada con éxito.
+                    </Typography>
+                    <Button onClick={handleCloseModal} sx={{ mt: 2 }} variant="contained" color="success">
+                        Cerrar
+                    </Button>
+                </Box>
+            </Modal>
+
+            {/* Botón para guardar */}
+            <div className='flex justify-center mb-11'>
+                <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleSave}
+                    disabled={loading}
+                    sx={{ marginTop: 5, mr: 10, borderRadius: '20px', padding: '10px 20px' }}
+                    size="large"
                 >
-                    <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 400,
-                        bgcolor: 'background.paper',
-                        border: '2px solid #4caf50', // Color verde para el borde
-                        boxShadow: 24,
-                        p: 4,
-                        borderRadius: 2, // Bordes redondeados
-                    }}>
-                        <Typography id="modal-title" variant="h6" component="h2" sx={{ display: 'flex', alignItems: 'center', color: '#4caf50' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                                <CheckCircleIcon style={{ color: '#cc0000' }} /> {/* Icono de éxito */}
-                            </Box>
-                            Evaluación Nutricional Guardada
-                        </Typography>
-                        <Typography id="modal-description" sx={{ mt: 2, color: '#0a0a0a' }}>
-                            La evaluación nutricional ha sido guardada con éxito.
-                        </Typography>
-                        <Button onClick={handleCloseModal} sx={{ mt: 2 }} variant="contained" color="success">
-                            Cerrar
-                        </Button>
-                    </Box>
-                </Modal>
+                    {loading ? 'Guardando...' : 'Guardar Evaluación Nutricional'}
+                </Button>
 
-          {/* Botón para guardar */}
-          <div className='flex justify-center mb-11'>
-            <Button
-                variant="contained"
-                color="success"
-                onClick={handleSave}
-                disabled={loading} // Deshabilitar el botón mientras se guarda
-                sx={{ marginTop: 5, mr:10, borderRadius: '20px', padding: '10px 20px' }} // Bordes redondeados y mayor tamaño
-                size="large" // Aumentar el tamaño del botón
-            >
-                {loading ? 'Guardando...' : 'Guardar Evaluación Nutricional'}
-            </Button>
-
-            {/* Botón para limpiar */}
-            <Button
-                variant="outlined"
-                color="error"
-                onClick={clearFields} // Llama a la función para limpiar los campos
-                sx={{ marginTop: 5, borderRadius: '20px', padding: '10px 20px' }} // Bordes redondeados
-                size="large" // Aumentar el tamaño del botón
-            >
-                Limpiar Campos
-            </Button>
+                {/* Botón para limpiar */}
+                <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={clearFields}
+                    sx={{ marginTop: 5, borderRadius: '20px', padding: '10px 20px' }}
+                    size="large"
+                >
+                    Limpiar Campos
+                </Button>
             </div>
         </Box>
     );
 }
 
 export default EvaluacionesNutricionalesForm;
-

@@ -1,4 +1,4 @@
-// IMCComparisonModal.tsx
+// src/components/IMCComparisonModal.tsx
 
 import React, { useState } from 'react';
 import { Box, Button, Modal, Typography, Paper } from '@mui/material';
@@ -18,11 +18,11 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface IMCComparisonModalProps {
-    tallaMt: number; // Talla en metros
-    pesoKg: number; // Peso en kilogramos
-    pesoGraso: number; // Peso graso
-    pesoMagra: number; // Peso magro
-    imc: number; // IMC calculado
+    tallaMt: number | null; // Talla en metros
+    pesoKg: number | null; // Peso en kilogramos
+    pesoGraso: number | null; // Peso graso
+    pesoMagra: number | null; // Peso magro
+    imc: number | null; // IMC calculado
 }
 
 const IMCComparisonModal: React.FC<IMCComparisonModalProps> = ({ tallaMt, pesoKg, pesoGraso, pesoMagra, imc }) => {
@@ -44,7 +44,7 @@ const IMCComparisonModal: React.FC<IMCComparisonModalProps> = ({ tallaMt, pesoKg
             },
             {
                 label: 'Tu IMC',
-                data: [imc],
+                data: [imc !== null ? imc : 0], // Asegúrate de que el IMC tenga un valor
                 fill: false,
                 backgroundColor: 'rgba(255,99,132,0.4)',
                 borderColor: 'rgba(255,99,132,1)',
@@ -79,23 +79,23 @@ const IMCComparisonModal: React.FC<IMCComparisonModalProps> = ({ tallaMt, pesoKg
                         </Typography>
                         <Paper sx={{ padding: 2, marginBottom: 2 }}>
                             <Typography variant="body1" display="flex" justifyContent="space-between">
-                                <span><strong>Talla:</strong> {tallaMt.toFixed(2)} m</span>
+                                <span><strong>Talla:</strong> {tallaMt !== null ? tallaMt : 0} m</span>
                                 <span><strong>Óptimo:</strong> 1.60 - 2.00 m</span> {/* Rango de talla óptimo */}
                             </Typography>
                             <Typography variant="body1" display="flex" justifyContent="space-between">
-                                <span><strong>Peso:</strong> {pesoKg.toFixed(2)} kg</span>
+                                <span><strong>Peso:</strong> {pesoKg !== null ? pesoKg.toFixed(2) : 0} kg</span>
                                 <span><strong>Óptimo:</strong> 50 - 80 kg</span> {/* Rango de peso óptimo */}
                             </Typography>
                             <Typography variant="body1" display="flex" justifyContent="space-between">
-                                <span><strong>Peso Graso:</strong> {pesoGraso.toFixed(2)} kg</span>
+                                <span><strong>Peso Graso:</strong> {pesoGraso !== null ? pesoGraso.toFixed(2) : 0} kg</span>
                                 <span><strong>Óptimo:</strong> 10 - 20 kg</span> {/* Rango de peso graso óptimo */}
                             </Typography>
                             <Typography variant="body1" display="flex" justifyContent="space-between">
-                                <span><strong>Peso Magro:</strong> {pesoMagra.toFixed(2)} kg</span>
+                                <span><strong>Peso Magro:</strong> {pesoMagra !== null ? pesoMagra.toFixed(2) : 0} kg</span>
                                 <span><strong>Óptimo:</strong> 30 - 60 kg</span> {/* Rango de peso magro óptimo */}
                             </Typography>
                             <Typography variant="body1" display="flex" justifyContent="space-between">
-                                <span><strong>IMC:</strong> {imc.toFixed(2)} kg/m²</span>
+                                <span><strong>IMC:</strong> {imc !== null ? imc.toFixed(2) : 0} kg/m²</span>
                                 <span><strong>Óptimo:</strong> 18.5 - 24.9 kg/m²</span> {/* Rango de IMC óptimo */}
                             </Typography>
                         </Paper>
