@@ -577,25 +577,33 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
             </Card>
 
             <div className="flex justify-center">
+                    <Button 
+                        variant="contained" 
+                        color="success" 
+                        onClick={handleSubmit} 
+                        disabled={loading} // Deshabilitar el botón mientras se carga
+                        sx={{ 
+                            mt: 2, 
+                            borderRadius: '30px', // Aumenta el valor para bordes más redondeados
+                            padding: '10px 20px' // Ajusta el padding si es necesario
+                        }}
+                    >
+                        {loading ? <CircularProgress size={24} /> : 'Guardar Historial Clínico'}
+                    </Button>
 
-            <Button 
-                    variant="contained" 
-                    color="success" 
-                    onClick={handleSubmit} 
-                    disabled={loading} // Deshabilitar el botón mientras se carga
-                    sx={{ mt: 2 }}
-                >
-                    {loading ? <CircularProgress size={24} /> : 'Guardar Historial Clínico'}
-                </Button>
-
-                <Button 
-                    variant="outlined" 
-                    color="secondary" 
-                    onClick={clearForm} 
-                    sx={{ mt: 2, ml: 2 }}
-                >
-                    Limpiar Campos
-                </Button>
+                    <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        onClick={clearForm} 
+                        sx={{ 
+                            mt: 2, 
+                            ml: 2, 
+                            borderRadius: '30px', // Aumenta el valor para bordes más redondeados
+                            padding: '10px 20px' // Ajusta el padding si es necesario
+                        }}
+                    >
+                        Limpiar Campos
+                    </Button>
                 </div>
             {/* Snackbar para notificaciones */}
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>

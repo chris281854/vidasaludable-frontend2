@@ -135,7 +135,11 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
             fullWidth
             label="RUP"
             value={selectedPatient.rupPaciente}
-            onChange={(e) => onRupChange(e.target.value)}
+            onChange={(e) => {
+              const newRup = e.target.value; // Obtén el nuevo valor
+              setSelectedPatient((prev) => ({ ...prev, rupPaciente: newRup })); // Actualiza el estado
+              onRupChange(newRup); // Llama a la función para manejar el cambio
+          }}
             disabled={disabled}
             InputProps={{
               startAdornment: (
@@ -303,7 +307,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           maxHeight: '80vh',
           overflow: 'auto'
         }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, color:"green" }}>
             <Typography variant="h6">Búsqueda de Pacientes</Typography>
             <IconButton onClick={() => setModalOpen(false)}>
               <CloseIcon />
