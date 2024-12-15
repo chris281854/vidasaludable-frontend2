@@ -1,10 +1,10 @@
 import useSaveHistorialClinico from "@/app/hooks/historial-clinico/useSaveHistorialClinico";
 import MedicalSignatureComponent from "@/components/MedicalSignature";
 import SectionDivider from "@/components/SectionDivider";
-import { Button, Card, CardContent, CircularProgress, TextField } from "@mui/material";
+import { Alert, Button, Card, CardContent, CircularProgress, Snackbar, TextField } from "@mui/material";
 import { Box } from "@mui/material";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 interface HistorialClinicoFormProps {
@@ -24,14 +24,13 @@ interface HistorialClinicoFormProps {
     onIdMedicoChange: (id: number) => void;
 }
 
-
-
-
-// interface HistorialClinicoFormProps {
-//     onChange: (field: string, value: any) => void; // Define el tipo de la función onChange
-// }
-
 const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialclinico, onChange, rup, onRupChange }) => {
+   
+   // Dentro del componente HistorialClinicoForm
+    useEffect(() => {
+        setFormData((prevData) => ({ ...prevData, rup })); // Actualiza el formData con el nuevo RUP
+    }, [rup]); // Dependencia en el RUP
+   
     const { data: session } = useSession();
     const [formData, setFormData] = useState<{
         idHistorial: number;
@@ -75,8 +74,7 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
         otrasRecomendaciones: string;
         farmacos: string;
         proximaCita: string; // Cambiado a string para la fecha
-        registro: string; // Cambiado a string para la fecha
-        userName: string;
+         userName: string;
     }>({
         idHistorial: 0,
         rup: "",
@@ -119,9 +117,16 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
         otrasRecomendaciones: "",
         farmacos: "",
         proximaCita: "", // Cambiado a string
-        registro: "", // Cambiado a string
-        userName: "",
+         userName: "",
     });
+
+
+
+
+    // Estado para el Snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "warning" | "error">("success");
 
     const { saveHistorialClinico, loading, error, success } = useSaveHistorialClinico(); // Usa el hook
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,11 +187,86 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
 
     
     const handleSubmit = async () => {
-        console.log(formData)
-        await saveHistorialClinico(formData); // Llama a la función del hook para guardar los datos
+        // Validaciones
+        if (!formData.rup) {
+            setSnackbarMessage("Por favor, completa el RUP del paciente.");
+            setSnackbarSeverity("warning");
+            setSnackbarOpen(true);
+            return;
+        }else if (!formData.proximaCita){
+            setSnackbarMessage("Por favor, completa la fecha de la próxima cita.");
+            setSnackbarSeverity("warning");
+            setSnackbarOpen(true);
+            return;
+
+        }else if (!formData.idMedico){
+            setSnackbarMessage("Por favor, completa el id del medico.");
+            setSnackbarSeverity("warning");
+            setSnackbarOpen(true);
+            return;
+
+        }
+
+
+        try {
+            await saveHistorialClinico(formData);
+            setSnackbarMessage("Historial clínico guardado con éxito.");
+            setSnackbarSeverity("success");
+        } catch (err) {
+            setSnackbarMessage("Error al guardar el historial clínico.");
+            setSnackbarSeverity("error");
+        } finally {
+            setSnackbarOpen(true);
+        }
     };
 
 
+    const clearForm = () => {
+        setFormData({
+            idHistorial: 0,
+            rup: "",
+            objetivo: "",
+            motivoConsulta: "",
+            alergias: "",
+            antecedentesPersonales: "",
+            antecedentesFamiliares: "",
+            peso: 0,
+            medicamentos: "",
+            analiticas: "",
+            resultados: "",
+            tratamientos: "",
+            observaciones: "",
+            diagnosticoClinico: "",
+            taGlicemiaSat: "",
+            funcionSueno: "",
+            nivelActividad: "",
+            estadoFisico: "",
+            nivelesAnsiedad: "",
+            otrasInformaciones: "",
+            idMedico: 0,
+            tallaMt: 0,
+            tallaCm: 0,
+            tallaPie: 0,
+            tallaPgs: 0,
+            pesoLb: 0,
+            tallaKg: 0,
+            perimetroBraqueal: 0,
+            PC: 0,
+            FC: 0,
+            frecuenciaRespiratoria: 0,
+            saturacion: 0,
+            signosVitales: 0,
+            pesoEdad: 0,
+            pesoTalla: 0,
+            pesoIdeal: 0,
+            conclusionMedica: "",
+            analiticasComplementarias: "",
+            otrasRecomendaciones: "",
+            farmacos: "",
+            proximaCita: "",
+            userName: "",
+        });
+    };
 
     return (
         <div>
@@ -466,6 +546,23 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
                         }}
                     />
 
+                    <TextField
+                        fullWidth
+                        label="Fecha de Proxima Cita"
+                        name="proximaCita"
+                        type="date"
+                        value={formData.proximaCita}
+                        onChange={handleChange}
+                        sx={{ mt:2,mb: 2, borderRadius: '20px' }}
+                        InputProps={{
+                            sx: {
+                                borderRadius: '20px',
+                            },
+                        }}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
 
 
                 </CardContent>
@@ -479,16 +576,33 @@ const HistorialClinicoForm: React.FC<HistorialClinicoFormProps> = ({ historialcl
                 </CardContent>
             </Card>
 
+            <div className="flex justify-center">
 
             <Button 
-                            variant="contained" 
-                            color="primary" 
-                            onClick={handleSubmit} 
-                            disabled={loading} // Deshabilitar el botón mientras se carga
-                            sx={{ mt: 2 }}
-                        >
-                            {loading ? <CircularProgress size={24} /> : 'Guardar Historial Clínico'}
-            </Button>
+                    variant="contained" 
+                    color="success" 
+                    onClick={handleSubmit} 
+                    disabled={loading} // Deshabilitar el botón mientras se carga
+                    sx={{ mt: 2 }}
+                >
+                    {loading ? <CircularProgress size={24} /> : 'Guardar Historial Clínico'}
+                </Button>
+
+                <Button 
+                    variant="outlined" 
+                    color="secondary" 
+                    onClick={clearForm} 
+                    sx={{ mt: 2, ml: 2 }}
+                >
+                    Limpiar Campos
+                </Button>
+                </div>
+            {/* Snackbar para notificaciones */}
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
 
         </Box>
         </div>
