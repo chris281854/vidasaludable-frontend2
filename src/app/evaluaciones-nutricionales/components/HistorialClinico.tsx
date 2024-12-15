@@ -19,7 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 interface HistorialClinicoProps {
   onAddHistorial: (historial: string) => void;
-  historial: string[];
+  historial: string[]; // Asegúrate de que esto sea un array
   onRemoveHistorial: (index: number) => void; // Nueva prop para eliminar historial
 }
 
@@ -63,15 +63,21 @@ const HistorialClinico: React.FC<HistorialClinicoProps> = ({ onAddHistorial, his
         </Button>
       </div>
       <List sx={{ mt: 2 }}>
-        {historial.map((item, index) => (
-          <ListItem key={index} secondaryAction={
-            <IconButton edge="end" aria-label="delete" onClick={() => onRemoveHistorial(index)}>
-              <DeleteIcon />
-            </IconButton>
-          }>
-            <ListItemText primary={item} />
+        {Array.isArray(historial) && historial.length > 0 ? (
+          historial.map((item, index) => (
+            <ListItem key={index} secondaryAction={
+              <IconButton edge="end" aria-label="delete" onClick={() => onRemoveHistorial(index)}>
+                <DeleteIcon />
+              </IconButton>
+            }>
+              <ListItemText primary={item} />
+            </ListItem>
+          ))
+        ) : (
+          <ListItem>
+            <ListItemText primary="No hay historiales clínicos disponibles." />
           </ListItem>
-        ))}
+        )}
       </List>
     </Paper>
   );

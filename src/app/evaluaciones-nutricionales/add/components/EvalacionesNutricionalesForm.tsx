@@ -268,6 +268,7 @@ const EvaluacionesNutricionalesForm: React.FC<EvaluacionesNutricionalesFormProps
             otrasRecomendaciones: formData.otrasRecomendaciones || "",
             proximaCita: formData.proximaCita || new Date().toISOString(),
             userName: session.user.name,
+        
         };
 
         if (!dataToSend.rup) {

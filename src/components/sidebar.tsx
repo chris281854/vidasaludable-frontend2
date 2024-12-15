@@ -11,6 +11,7 @@ import { FaListAlt } from "react-icons/fa";
 import { LiaListAlt } from "react-icons/lia";
 import { MdAssignmentAdd } from 'react-icons/md';
 import { SiTestcafe } from "react-icons/si";
+import { BsFileEarmarkMedicalFill } from "react-icons/bs";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -140,6 +141,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: AiOutlineDelete, label: "Eliminar Evaluacion", href: "/evaluaciones-nutricionales/delete" },
   ];
 
+
+  const historialclinicoSubItems = [
+    {icon: LiaListAlt, label: "Dashboard ", href: "/historial-clinico/" },
+    { icon: AiOutlinePlusCircle, label: "Agregar Historial Clinico", href: "/historial-clinico/add" },
+    { icon: AiOutlineEdit, label: "Editar Historial Clinico", href: "/historial-clinico/edit" },
+    { icon: AiOutlineDelete, label: "Eliminar Historial Clinico", href: "/historial-clinico/delete" },
+  ];
+
+
   const handleLogout = async () => {
     await signOut({ redirect: false });
     // Aquí puedes agregar cualquier lógica adicional para eliminar el token si es necesario
@@ -211,6 +221,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           href="/evaluaciones-nutricionales" 
           expanded={expanded}
           subItems={evaluacionesNutricionalesItems}
+          activeSubmenu={activeSubmenu}
+          setActiveSubmenu={setActiveSubmenu}
+          />
+
+        <SidebarItem
+          icon={BsFileEarmarkMedicalFill}
+          label="Historial Clinico"
+          href="/historial-clinico"
+          expanded={expanded}
+          subItems={historialclinicoSubItems}
           activeSubmenu={activeSubmenu}
           setActiveSubmenu={setActiveSubmenu}
           />
