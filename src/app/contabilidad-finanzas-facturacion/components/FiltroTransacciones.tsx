@@ -78,6 +78,7 @@ const FiltroTransacciones: React.FC = () => {
                 value={filterValue}
                 onChange={handleInputChange}
                 className="text-black border p-2 rounded w-full mb-4"
+                style={{ borderRadius: '15px' }} // Input redondeado
             />
             <TableContainer component={Paper}>
                 <Table>

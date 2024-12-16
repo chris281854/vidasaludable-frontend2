@@ -6,6 +6,7 @@ const TablaTransacciones: React.FC = () => {
     const [transacciones, setTransacciones] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [filterValue, setFilterValue] = useState('');
 
     useEffect(() => {
         const fetchTransacciones = async () => {
@@ -15,7 +16,6 @@ const TablaTransacciones: React.FC = () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'authorization': `Bearer ${session?.user.token}`,
-                        // Agrega aquí cualquier encabezado adicional que necesites, como autorización
                     },
                 });
 
@@ -34,7 +34,7 @@ const TablaTransacciones: React.FC = () => {
         };
 
         fetchTransacciones();
-    }, []); // Se ejecuta una vez al montar el componente
+    }, [session]); // Se ejecuta una vez al montar el componente
 
     if (loading) {
         return <div>Cargando...</div>; // Mensaje de carga
@@ -44,35 +44,59 @@ const TablaTransacciones: React.FC = () => {
         return <div>Error: {error}</div>; // Mensaje de error
     }
 
+    // Filtrar las transacciones según el valor del input
+    const filteredTransacciones = transacciones.filter(transaccion => {
+        return (
+            transaccion.tipo.toLowerCase().includes(filterValue.toLowerCase()) ||
+            transaccion.descripcion.toLowerCase().includes(filterValue.toLowerCase())
+        );
+    });
+
+    // Limitar a 5 registros
+    const displayedTransacciones = filteredTransacciones.slice(0, 5);
+
     return (
         <div className="bg-white p-4 rounded-lg shadow-md mb-4">
-            <h2 className="text-xl font-semibold">Transacciones</h2>
-            <table className="min-w-full">
-                <thead>
-                    <tr>
-                        <th className="border px-4 py-2">ID</th>
-                        <th className="border px-4 py-2">Tipo</th>
-                        <th className="border px-4 py-2">Monto</th>
-                        <th className="border px-4 py-2">Fecha</th>
-                        <th className="border px-4 py-2">Descripción</th>
-                        <th className="border px-4 py-2">Método de Pago</th>
-                        <th className="border px-4 py-2">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {transacciones.map((transaccion) => (
-                        <tr key={transaccion.id}>
-                            <td className="border px-4 py-2">{transaccion.id}</td>
-                            <td className="border px-4 py-2">{transaccion.tipo}</td>
-                            <td className="border px-4 py-2">${transaccion.monto.toLocaleString()}</td>
-                            <td className="border px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
-                            <td className="border px-4 py-2">{transaccion.descripcion}</td>
-                            <td className="border px-4 py-2">{transaccion.metodoPago}</td>
-                            <td className="border px-4 py-2">{transaccion.estado}</td>
+            <h2 className="text-2xl text-green-700 font-extrabold">Transacciones</h2>
+            <input
+                type="text"
+                placeholder="Filtrar por tipo o descripción"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+                className="text-black border p-2 rounded mb-4 w-full"
+                style={{ borderRadius: '15px' }} // Input redondeado
+
+            />
+            {displayedTransacciones.length === 0 && filterValue ? (
+                <div className="text-green-800 font-extrabold">No se encontraron transacciones que coincidan con el filtro.</div>
+            ) : (
+                <table className="min-w-full">
+                    <thead>
+                        <tr>
+                            <th className="bg-green-700 text-xl font-extrabold text-white round">ID</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Tipo</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Monto</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Fecha</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Descripción</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Método de Pago</th>
+                            <th className="bg-green-700 text-xl font-extrabold text-white ">Estado</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {displayedTransacciones.map((transaccion) => (
+                            <tr key={transaccion.id}>
+                                <td className="border px-4 py-2">{transaccion.id}</td>
+                                <td className="border px-4 py-2">{transaccion.tipo}</td>
+                                <td className="border px-4 py-2">${transaccion.monto.toLocaleString()}</td>
+                                <td className="border px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
+                                <td className="border px-4 py-2">{transaccion.descripcion}</td>
+                                <td className="border px-4 py-2">{transaccion.metodoPago}</td>
+                                <td className="border px-4 py-2">{transaccion.estado}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
         </div>
     );
 };
