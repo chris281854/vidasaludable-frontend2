@@ -132,7 +132,7 @@ const useNutritionPlan = () => {
         return;
       }
 
-      console.log('Datos a enviar:', JSON.stringify(nutritionPlan)); // Imprimir el cuerpo
+     // console.log('Datos a enviar:', JSON.stringify(nutritionPlan)); // Imprimir el cuerpo
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/planes-nutricionales`, {
         method: 'POST',
         headers: {

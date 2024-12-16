@@ -16,7 +16,7 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchTotales = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/facturacion/totales`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/facturacion/totales/credito`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${session?.user.token}`,
@@ -37,15 +37,13 @@ const Dashboard: React.FC = () => {
                     return;
                 }
 
-                const data = await response.json();
-                console.log(data); // Verifica la respuesta de la API
-
-                // Asegúrate de que los valores sean números
-                const totalCuentasPorCobrar = data.totalCuentasPorCobrar || 0;
+                const totalCuentasPorCobrar = await response.json(); // Aquí se espera un número directamente
+                // console.log("Respuesta de la API:", totalCuentasPorCobrar); // Verifica la respuesta de la API
+                // console.log("Total Cuentas por Cobrar:", totalCuentasPorCobrar); // Verifica el valor
 
                 setTotales((prevState) => ({
                     ...prevState,
-                    totalCuentasPorCobrar,
+                    totalCuentasPorCobrar: totalCuentasPorCobrar, // Asigna el valor directamente
                     balanceTotal: totalCuentasPorCobrar - 10, // Calcula el balance total
                 }));
             } catch (error) {
@@ -73,7 +71,7 @@ const Dashboard: React.FC = () => {
                             <AiOutlineDollar size={30} className="text-white mr-2" />
                             <div>
                                 <h3 className="text-white font-bold">Total Cuentas por Cobrar</h3>
-                                <p className="text-white">${totales.totalCuentasPorCobrar.toLocaleString()}</p>
+                                <p className="text-white font-extrabold text-4xl">$  {totales.totalCuentasPorCobrar.toLocaleString()}</p>
                             </div>
                         </motion.div>
                         <motion.div
@@ -83,7 +81,7 @@ const Dashboard: React.FC = () => {
                             <AiOutlineCreditCard size={30} className="text-white mr-2" />
                             <div>
                                 <h3 className="text-white font-bold">Total Cuentas por Pagar</h3>
-                                <p className="text-white">${totales.totalCuentasPorPagar.toLocaleString()}</p>
+                                <p className="text-white font-extrabold text-4xl">$  {totales.totalCuentasPorPagar.toLocaleString()}</p>
                             </div>
                         </motion.div>
                         <motion.div
@@ -93,7 +91,7 @@ const Dashboard: React.FC = () => {
                             <AiOutlineBank size={30} className="text-white mr-2" />
                             <div>
                                 <h3 className="text-white font-bold">Balance Total</h3>
-                                <p className="text-white">${totales.balanceTotal.toLocaleString()}</p>
+                                <p className="text-white font-extrabold text-4xl">$  {totales.balanceTotal.toLocaleString()}</p>
                             </div>
                         </motion.div>
                     </div>

@@ -13,6 +13,7 @@ import { MdAssignmentAdd } from 'react-icons/md';
 import { SiTestcafe } from "react-icons/si";
 import { BsFileEarmarkMedicalFill } from "react-icons/bs";
 import { ImHome2 } from "react-icons/im";
+import { FaMoneyBillTrendUp } from "react-icons/fa6";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -150,6 +151,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: AiOutlineDelete, label: "Eliminar Historial Clinico", href: "/historial-clinico/delete" },
   ];
 
+  const ContabilidadSubItems = [
+    {icon: LiaListAlt, label: "Dashboard ", href: "/contabilidad-finanzas-facturacion/" },
+    { icon: AiOutlinePlusCircle, label: "Registrar Pago", href: "/contabilidad-finanzas-facturacion/pago" },
+    { icon: AiOutlineEdit, label: "Conversion de Citas", href: "/contabilidad-finanzas-facturacion/conversion-citas" },
+  //  { icon: AiOutlineDelete, label: "Eliminar Historial Clinico", href: "/historial-clinico/delete" },
+  ];
+
+
 
   const handleLogout = async () => {
     // Eliminar el token del almacenamiento local
@@ -243,6 +252,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           href="/historial-clinico"
           expanded={expanded}
           subItems={historialclinicoSubItems}
+          activeSubmenu={activeSubmenu}
+          setActiveSubmenu={setActiveSubmenu}
+          />
+
+        <SidebarItem
+          icon={FaMoneyBillTrendUp}
+          label="Contabilidad y Facturacion"
+          href="/contabilidad-finanzas-facturacion"
+          expanded={expanded}
+          subItems={ContabilidadSubItems}
           activeSubmenu={activeSubmenu}
           setActiveSubmenu={setActiveSubmenu}
           />
