@@ -60,7 +60,7 @@ const HistorialClinicoEditPage = () => {
         <ProtectedRoute>
             <HistorialClinicoLayout>
                 <div>
-                    <HeaderUser title="Historiales Clinicos ~ Registro de Historiales" />
+                    <HeaderUser title="Historiales Clinicos ~ Edicion de Historiales" />
                     <Box sx={{ display: 'flex' }}>
                         <Box sx={{ flex: 1, mt: 21, mr: 2 }}>
                         <HistorialClinicoEditForm 
