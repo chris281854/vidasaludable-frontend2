@@ -12,6 +12,7 @@ import { LiaListAlt } from "react-icons/lia";
 import { MdAssignmentAdd } from 'react-icons/md';
 import { SiTestcafe } from "react-icons/si";
 import { BsFileEarmarkMedicalFill } from "react-icons/bs";
+import { ImHome2 } from "react-icons/im";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -151,9 +152,20 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 
   const handleLogout = async () => {
+    // Eliminar el token del almacenamiento local
+    localStorage.removeItem('token'); // Cambia 'token' por la clave que estés usando para almacenar el token
+
+    // Cerrar sesión usando next-auth
     await signOut({ redirect: false });
+
+    // Redirigir al usuario a la página de login
+    router.push('/login');
+};
+
+  const handlegoHome = async () => {
+   
     // Aquí puedes agregar cualquier lógica adicional para eliminar el token si es necesario
-    router.push('/login'); // Redirige al usuario a la página de login
+    router.push('/dashboard'); // Redirige al usuario a la página de login
   };
 
   return (
@@ -237,7 +249,18 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       </nav>
 
-      <div className="mt-auto">
+      <div
+          className={`flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 cursor-pointer ${
+            expanded ? 'justify-start' : 'justify-center'
+          }`}
+          onClick={handlegoHome}
+        >
+       <ImHome2 size={24}/>
+          {expanded && <span className="text-lg">Ir a Inicio</span>}
+        </div>
+
+
+      <div className="mt-auto flex flex-col items-start w-full">
         <div
           className={`flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 ${
             expanded ? 'justify-start' : 'justify-center'
@@ -255,6 +278,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <AiOutlineLogout size={24} />
           {expanded && <span className="text-lg">Cerrar sesión</span>}
         </div>
+
+
+        
+
+
       </div>
     </div>
   );

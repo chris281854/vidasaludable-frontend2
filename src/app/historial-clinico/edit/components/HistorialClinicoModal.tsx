@@ -93,7 +93,7 @@ const HistorialClinicoModal: React.FC<HistorialClinicoModalProps> = ({ open, onC
                         </Table>
                     </TableContainer>
                 ) : (
-                    <Typography>No se encontraron datos.</Typography>
+                    <Typography color="green">No se encontraron datos.</Typography>
                 )}
                
                 <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '16px' }}>
