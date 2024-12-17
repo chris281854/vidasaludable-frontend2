@@ -1,7 +1,9 @@
-import router from 'next/router';
+'use client';
+
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineInfoCircle } from 'react-icons/ai';
-import { useSession } from 'next-auth/react'; // Asegúrate de importar useSession
+import { useSession } from 'next-auth/react';
 import {
     Table,
     TableBody,
@@ -15,6 +17,7 @@ import {
 } from '@mui/material';
 
 interface Cuenta {
+    id: string; // Asegúrate de que haya un ID único para cada cuenta
     montoBruto: number;
     itbis: number;
     montoNeto: number;
@@ -30,15 +33,16 @@ interface Cuenta {
 }
 
 const ResumenCuentas: React.FC = () => {
-    const { data: session } = useSession(); // Obtén la sesión
+    
+    const { data: session } = useSession();
     const [cuentas, setCuentas] = useState<Cuenta[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!session) {
             console.error('No session found');
-            router.push('/login'); // Redirige si no hay sesión
-            return; // Asegúrate de salir de la función si no hay sesión
+            
+            return;
         }
 
         const fetchCuentas = async () => {
@@ -47,21 +51,18 @@ const ResumenCuentas: React.FC = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.user.token}`, // Usa el token de la sesión
+                        'Authorization': `Bearer ${session.user.token}`,
                     },
                 });
 
-                console.log('Response status:', response.status); // Imprime el estado de la respuesta
-
                 if (!response.ok) {
-                    const errorData = await response.json(); // Captura el cuerpo de la respuesta
-                    console.error('Error response:', errorData); // Log para depuración
+                    const errorData = await response.json();
+                    console.error('Error response:', errorData);
                     throw new Error('Error al obtener las cuentas por cobrar');
                 }
 
                 const data = await response.json();
-             //   console.log("Datos obtenidos:", data); // Imprime los datos obtenidos
-                setCuentas(data); // Asumiendo que la respuesta es un array de cuentas
+                setCuentas(data);
             } catch (error) {
                 console.error('Error fetching cuentas:', error);
                 setError((error as Error).message);
@@ -69,11 +70,11 @@ const ResumenCuentas: React.FC = () => {
         };
 
         fetchCuentas();
-    }, [session]); // Asegúrate de que el efecto dependa de la sesión
+    }, [session]);
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md mb-4">
-            <Typography variant="h5" component="h2" className="text-green-600 font-bold mb-4"> {/* Cambiado a color verde y negrita */}
+            <Typography variant="h5" component="h2" className="text-green-600 font-bold mb-4">
                 Resumen de Cuentas
             </Typography>
             {error && <Typography color="error">{error}</Typography>}
@@ -95,8 +96,8 @@ const ResumenCuentas: React.FC = () => {
                     </TableHead>
                     <TableBody>
                         {cuentas.length > 0 ? (
-                            cuentas.map((cuenta, index) => (
-                                <TableRow key={index} hover>
+                            cuentas.map((cuenta) => (
+                                <TableRow key={cuenta.id} hover>
                                     <TableCell>{cuenta.paciente.rup}</TableCell>
                                     <TableCell>{cuenta.paciente.nombre}</TableCell>
                                     <TableCell>${cuenta.montoBruto ? cuenta.montoBruto.toLocaleString() : 'N/A'}</TableCell>
@@ -105,16 +106,16 @@ const ResumenCuentas: React.FC = () => {
                                     <TableCell>{cuenta.tipoFactura}</TableCell>
                                     <TableCell>{cuenta.tipoConsulta}</TableCell>
                                     <TableCell>{cuenta.aseguradora}</TableCell>
-                                    <TableCell>{cuenta.registro}</TableCell> {/* Asegúrate de que esta propiedad esté en la respuesta */}
-                                    
-                                    {cuenta.tipoFactura === 'A CREDITO' && (
-                                        <TableCell>
+                                    <TableCell>{new Date(cuenta.registro).toLocaleDateString()}</TableCell> {/* Formateo de fecha */}
+                                    <TableCell>
+                                        {cuenta.observacion || 'N/A'}
+                                        {cuenta.tipoFactura === 'A CREDITO' && (
                                             <div className="font-extrabold text-sm flex items-center mt-2 text-yellow-600">
                                                 <AiOutlineInfoCircle className="mr-3 size-6" />
                                                 <span>Esta factura es a crédito.</span>
                                             </div>
-                                        </TableCell>
-                                    )}
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
