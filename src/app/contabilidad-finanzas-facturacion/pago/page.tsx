@@ -11,6 +11,8 @@ import {
     Grid,
     Paper,
     Box,
+    Card,
+    CardContent,
 } from '@mui/material';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PagosLayout from './PagosLayout';
@@ -69,83 +71,15 @@ const RegistroPagos: React.FC = () => {
     return (
         <ProtectedRoute>
             <PagosLayout>
-                <HeaderUser title="Registros de transacciones ~ Pagos de consultas medicas" />
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                    <Box sx={{ flex: 1, mt: 24, mr: 2, backgroundColor: 'white', padding: 3, borderRadius: 2 }}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    select
-                                    label="Tipo de Transacción"
-                                    value={tipoTransaccion}
-                                    onChange={(e) => setTipoTransaccion(e.target.value)}
-                                    fullWidth
-                                    required
-                                >
-                                    {Object.values(TipoTransacciones).map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="Monto de Transacción"
-                                    type="number"
-                                    value={monto}
-                                    onChange={(e) => setMonto(e.target.value)}
-                                    fullWidth
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="Descripción"
-                                    value={descripcion}
-                                    onChange={(e) => setDescripcion(e.target.value)}
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    select
-                                    label="Método de Pago"
-                                    value={metodoPago}
-                                    onChange={(e) => setMetodoPago(e.target.value)}
-                                    fullWidth
-                                    required
-                                >
-                                    {Object.values(TipoPago).map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                            {option}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="ID de Factura"
-                                    value={idFactura}
-                                    onChange={(e) => setIdFactura(e.target.value)}
-                                    fullWidth
-                                    required
-                                />
-                            </Grid>
-                        </Grid>
-                        <Button type="submit" variant="contained" color="primary" style={{ marginTop: '20px' }} onClick={handleSubmit}>
-                            Registrar Pago
-                        </Button>
-                        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                            <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
-                                {snackbarMessage}
-                            </Alert>
-                        </Snackbar>
+            <div>
+            <HeaderUser title="Evaluaciones Nutricionales ~ Registro de Evaluaciones" />
+            <Box sx={{ display: 'flex' }}>
+                    <Box sx={{ flex: 1, mt: 24, mr: 2 }}>
+                        <RegistroPagos />
                     </Box>
-                </Box>
+            </Box>         
+            
+            </div>
             </PagosLayout>
         </ProtectedRoute>
     );
