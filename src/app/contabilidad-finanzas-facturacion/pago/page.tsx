@@ -17,6 +17,7 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PagosLayout from './PagosLayout';
 import HeaderUser from '@/components/headeruser';
+import RegistroPagos from './components/RegistroPagos';
 
 enum TipoTransacciones {
     ABONO = 'Abono',
@@ -43,7 +44,7 @@ enum TipoPago {
     OTRO = 'Otro',
 }
 
-const RegistroPagos: React.FC = () => {
+const RegistroPagosPage: React.FC = () => {
     const [tipoTransaccion, setTipoTransaccion] = useState('');
     const [monto, setMonto] = useState('');
     const [descripcion, setDescripcion] = useState('');
@@ -85,4 +86,4 @@ const RegistroPagos: React.FC = () => {
     );
 };
 
-export default RegistroPagos;
+export default RegistroPagosPage;
