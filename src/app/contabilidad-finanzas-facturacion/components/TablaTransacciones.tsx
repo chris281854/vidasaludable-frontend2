@@ -24,6 +24,7 @@ const TablaTransacciones: React.FC = () => {
                 }
 
                 const data = await response.json();
+                console.log(data); // Verifica la estructura de los datos
                 setTransacciones(data);
             } catch (error) {
                 console.error('Error fetching transacciones:', error);
@@ -65,7 +66,6 @@ const TablaTransacciones: React.FC = () => {
                 onChange={(e) => setFilterValue(e.target.value)}
                 className="text-black border p-2 rounded mb-4 w-full"
                 style={{ borderRadius: '15px' }} // Input redondeado
-
             />
             {displayedTransacciones.length === 0 && filterValue ? (
                 <div className="text-green-800 font-extrabold">No se encontraron transacciones que coincidan con el filtro.</div>
@@ -85,13 +85,13 @@ const TablaTransacciones: React.FC = () => {
                     <tbody>
                         {displayedTransacciones.map((transaccion) => (
                             <tr key={transaccion.id}>
-                                <td className="border px-4 py-2">{transaccion.id}</td>
-                                <td className="border px-4 py-2">{transaccion.tipo}</td>
-                                <td className="border px-4 py-2">${transaccion.monto.toLocaleString()}</td>
-                                <td className="border px-4 py-2">{new Date(transaccion.fecha).toLocaleDateString()}</td>
-                                <td className="border px-4 py-2">{transaccion.descripcion}</td>
-                                <td className="border px-4 py-2">{transaccion.metodoPago}</td>
-                                <td className="border px-4 py-2">{transaccion.estado}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{transaccion.idFactura}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{transaccion.tipo}</td>
+                                <td className="text-yellow-600 border px-4 py-2">${transaccion.monto.toLocaleString()}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{new Date(transaccion.registro).toLocaleDateString()}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{transaccion.descripcion}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{transaccion.metodoPago}</td>
+                                <td className="text-yellow-600 border px-4 py-2">{transaccion.estado}</td>
                             </tr>
                         ))}
                     </tbody>
