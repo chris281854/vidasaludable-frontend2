@@ -32,9 +32,9 @@ interface EvaluacionNutricional {
 }
 
 interface Factura {
-    id: number;
-    evaluacionId: number;
-    monto: number;
+    rup: string;
+    idFactura: number;
+    total: number;
     fecha: string;
 }
 
@@ -42,7 +42,7 @@ const ConversionCitas: React.FC = () => {
     const { data: session } = useSession();
 
     const [evaluaciones, setEvaluaciones] = useState<EvaluacionNutricional[]>([]);
-    const [facturas, setFacturas] = useState<Factura[]>([]);
+    const [facturas, setFacturas] = useState<Factura[]>([]); // Asegúrate de que esto sea un array
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
@@ -94,7 +94,35 @@ const ConversionCitas: React.FC = () => {
             }
         };
 
+        const fetchFacturas = async () => {
+            try {
+                if (!session) {
+                    console.error('No session found');
+                    return;
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/facturacion/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.user?.token || ''}`,
+                    },
+                });
+
+                // Asegúrate de que la respuesta sea un array
+                const data: Factura[] = await response.json();
+                if (Array.isArray(data)) {
+                    setFacturas(data);
+                } else {
+                    console.error('La respuesta de facturas no es un array:', data);
+                }
+            } catch (error) {
+                console.error('Error fetching facturas:', error);
+            }
+        };
+
         fetchEvaluaciones();
+        fetchFacturas(); // Llama a la función para obtener las facturas
     }, [session]);
 
     const handleConvertToFactura = (evaluacion: EvaluacionNutricional) => {
@@ -148,7 +176,7 @@ const ConversionCitas: React.FC = () => {
             });
     
             setEvaluaciones(updatedEvaluaciones); // Actualizar el estado local
-            setFacturas([...facturas, { id: facturas.length + 1, evaluacionId: selectedEvaluacion!.idEvaluacion, monto: newFactura.total, fecha: new Date().toISOString() }]);
+            setFacturas([...facturas, { idFactura: facturas.length + 1, rup: selectedEvaluacion!.paciente.rup, total: newFactura.total, fecha: new Date().toISOString() }]); // Cambiar idEvaluacion por id del paciente
             setSnackbarMessage(`Factura creada para ${selectedEvaluacion?.paciente.nombre} ${selectedEvaluacion?.paciente.apellido}.`);
             setSnackbarSeverity('success');
             setSnackbarOpen(true);
@@ -179,98 +207,102 @@ const ConversionCitas: React.FC = () => {
     };
 
     return (
-        <Paper sx={{ padding: 2 }}>
-            <Typography variant="h4" gutterBottom>
+        <div>
+            <Typography color="success" variant="h4" gutterBottom>
                 Evaluaciones Nutricionales
             </Typography>
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID Evaluación</TableCell>
-                            <TableCell>Paciente</TableCell>
-                            <TableCell>Fecha</TableCell>
-                            <TableCell>Objetivo</TableCell>
-                            <TableCell>Motivo de Consulta</TableCell>
-                            <TableCell>Estado</TableCell>
-                            <TableCell>Acciones</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {evaluaciones.filter(evaluacion => !evaluacion.facturado).map((evaluacion) => (
-                            <TableRow key={evaluacion.idEvaluacion}>
-                                <TableCell>{evaluacion.idEvaluacion}</TableCell>
-                                <TableCell>{`${evaluacion.paciente.nombre} ${evaluacion.paciente.apellido}`}</TableCell>
-                                <TableCell>{dayjs(evaluacion.fecha).format('DD/MM/YYYY')}</TableCell>
-                                <TableCell>{evaluacion.objetivo}</TableCell>
-                                <TableCell>{evaluacion.motivoConsulta}</TableCell>
-                                <TableCell>
-                                    {evaluacion.facturado ? (
-                                        <Typography variant="body2" sx={{ 
-                                            border: '1px solid green', 
-                                            borderRadius: '20px', 
-                                            padding: '4px 10px', 
-                                            color: 'green', 
-                                            display: 'inline-block' 
-                                        }}>
-                                            Facturado
-                                        </Typography>
-                                    ) : (
-                                        <Typography variant="body2" sx={{ 
-                                            border: '1px solid orange', 
-                                            borderRadius: '20px', 
-                                            padding: '4px 10px', 
-                                            color: 'orange', 
-                                            display: 'inline-block' 
-                                        }}>
-                                            Pendiente de Facturar
-                                        </Typography>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {!evaluacion.facturado ? (
-                                        <Button
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={() => handleConvertToFactura(evaluacion)}
-                                            startIcon={<AddCircle />}
-                                            sx={{ borderRadius: '50%' }} // Botón redondo
-                                        >
-                                            Convertir
-                                        </Button>
-                                    ) : null}
-                                </TableCell>
+            <Paper sx={{ marginBottom: 2, padding: 2 }}>
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>ID Evaluación</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Paciente</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Fecha</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Objetivo</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Motivo de Consulta</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Estado</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Acciones</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {evaluaciones.filter(evaluacion => !evaluacion.facturado).map((evaluacion) => (
+                                <TableRow key={evaluacion.idEvaluacion}>
+                                    <TableCell>{evaluacion.idEvaluacion}</TableCell>
+                                    <TableCell>{`${evaluacion.paciente.nombre} ${evaluacion.paciente.apellido}`}</TableCell>
+                                    <TableCell>{dayjs(evaluacion.fecha).format('DD/MM/YYYY')}</TableCell>
+                                    <TableCell>{evaluacion.objetivo}</TableCell>
+                                    <TableCell>{evaluacion.motivoConsulta}</TableCell>
+                                    <TableCell>
+                                        {evaluacion.facturado ? (
+                                            <Typography variant="body2" sx={{ 
+                                                border: '1px solid green', 
+                                                borderRadius: '20px', 
+                                                padding: '4px 10px', 
+                                                color: 'green', 
+                                                display: 'inline-block' 
+                                            }}>
+                                                Facturado
+                                            </Typography>
+                                        ) : (
+                                            <Typography variant="body2" sx={{ 
+                                                border: '1px solid orange', 
+                                                borderRadius: '20px', 
+                                                padding: '4px 10px', 
+                                                color: 'orange', 
+                                                display: 'inline-block' 
+                                            }}>
+                                                Pendiente de Facturar
+                                            </Typography>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {!evaluacion.facturado ? (
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={() => handleConvertToFactura(evaluacion)}
+                                                startIcon={<AddCircle />}
+                                                sx={{ borderRadius: '50%' }} // Botón redondo
+                                            >
+                                                Convertir
+                                            </Button>
+                                        ) : null}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
 
-            <Typography variant="h4" gutterBottom sx={{ marginTop: 4 }}>
+            <Typography color="success" variant="h4" gutterBottom sx={{ marginTop: 4 }}>
                 Facturas Generadas
             </Typography>
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID Factura</TableCell>
-                            <TableCell>ID Evaluación</TableCell>
-                            <TableCell>Monto</TableCell>
-                            <TableCell>Fecha</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {facturas.map((factura) => (
-                            <TableRow key={factura.id}>
-                                <TableCell>{factura.id}</TableCell>
-                                <TableCell>{factura.evaluacionId}</TableCell>
-                                <TableCell>${factura.monto}</TableCell>
-                                <TableCell>{dayjs(factura.fecha).format('DD/MM/YYYY')}</TableCell>
+            <Paper sx={{ padding: 2 }}>
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>ID Factura</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>ID Paciente</TableCell> {/* Cambiado de ID Evaluación a ID Paciente */}
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Monto</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>Fecha</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {facturas.map((factura) => (
+                                <TableRow key={factura.idFactura}>
+                                    <TableCell>{factura.idFactura}</TableCell>
+                                    <TableCell>{factura.rup}</TableCell> {/* Cambiado a idEvaluacion para mostrar el ID del paciente */}
+                                    <TableCell>${factura.total}</TableCell>
+                                    <TableCell>{dayjs(factura.fecha).format('DD/MM/YYYY')}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
 
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
                 <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
@@ -346,7 +378,7 @@ const ConversionCitas: React.FC = () => {
                     </Button>
                 </Box>
             </Modal>
-        </Paper>
+        </div>
     );
 };
 
