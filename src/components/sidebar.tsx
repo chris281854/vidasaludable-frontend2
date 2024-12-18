@@ -284,6 +284,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className={`flex items-center gap-4 p-3 w-full hover:bg-gray-700 rounded-lg transition-all duration-300 ${
             expanded ? 'justify-start' : 'justify-center'
           }`}
+          onClick={() => router.push('/ajustes')}
         >
           <FiSettings size={24} />
           {expanded && <span className="text-lg">Ajustes</span>}

@@ -6,6 +6,7 @@ import SessionAuthProvider from "@/context/SessionAuthProvider";
 import Navbar from "@/components/Navbar";
 import { Icon } from "@mui/material";
 import Head from "next/head";
+import { ThemeProviderWrapper } from "@/context/ThemeContext";
 
 
 
@@ -32,11 +33,14 @@ export default function RootLayout({
 
       <body >
         <>
-        <SessionAuthProvider>
+        <ThemeProviderWrapper>         <SessionAuthProvider>
           {/* <Navbar /> */}
           {children}
           
           </SessionAuthProvider>
+          </ThemeProviderWrapper>
+ 
+
         </>
       </body>
     </html>

@@ -1,85 +1,39 @@
 'use client'
 
-import React, { useState } from 'react';
-import { Paper, Typography, TextField, Button, Switch, FormControlLabel, Snackbar, Alert } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useSession } from 'next-auth/react'; // Asegúrate de importar useSession
+import { useRouter } from 'next/navigation'; // Importa useRouter
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { ThemeProviderWrapper, useTheme } from '@/context/ThemeContext';
+import AjustesLayout from './AjustesLayout';
+import ModuloAjustes from './Ajustes';
+import HeaderUser from '@/components/headeruser';
+import { Box } from '@mui/material';
 
-const ConfiguracionConsultorio: React.FC = () => {
-    const [nombreConsultorio, setNombreConsultorio] = useState('');
-    const [direccion, setDireccion] = useState('');
-    const [telefono, setTelefono] = useState('');
-    const [notificaciones, setNotificaciones] = useState(true);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+const ModuloAjustesApp: React.FC = () => {
+    const { data: session, status } = useSession(); // Obtén la sesión y su estado
+    const router = useRouter();
 
-    const handleSave = () => {
-        // Aquí puedes agregar la lógica para guardar la configuración
-        console.log({
-            nombreConsultorio,
-            direccion,
-            telefono,
-            notificaciones,
-        });
-        setSnackbarMessage('Configuraciones guardadas con éxito.');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-    };
-
-    const handleCloseSnackbar = () => {
-        setSnackbarOpen(false);
-    };
+    // Efecto para redirigir si no hay sesión
+    useEffect(() => {
+        if (status === 'loading') return; // Espera a que se cargue la sesión
+        if (!session) {
+            router.push('/login'); // Redirige a la página de inicio de sesión si no hay sesión
+        }
+    }, [session, status, router]);
 
     return (
-        <Paper sx={{ padding: 3, margin: 2 }}>
-            <Typography variant="h4" gutterBottom>
-                Configuración del Consultorio
-            </Typography>
-            <TextField
-                label="Nombre del Consultorio"
-                value={nombreConsultorio}
-                onChange={(e) => setNombreConsultorio(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Dirección"
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Teléfono"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
-                fullWidth
-                margin="normal"
-            />
-            <FormControlLabel
-                control={
-                    <Switch
-                        checked={notificaciones}
-                        onChange={() => setNotificaciones(!notificaciones)}
-                    />
-                }
-                label="Activar Notificaciones"
-            />
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSave}
-                sx={{ marginTop: 2 }}
-            >
-                Guardar Configuraciones
-            </Button>
-
-            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
-        </Paper>
+        <ProtectedRoute>
+            <AjustesLayout>
+                <Box sx={{ p: 4 }}>
+                    <HeaderUser title='Ajustes de usuario' />
+                    <div className="p-4">
+                        <ModuloAjustes />
+                    </div>
+                </Box>
+            </AjustesLayout>
+        </ProtectedRoute>
     );
 };
 
-export default ConfiguracionConsultorio;
+export default ModuloAjustesApp;

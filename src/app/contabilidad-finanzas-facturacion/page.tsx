@@ -7,15 +7,22 @@ import GraficoFinanciero from './components/GraficoFinanciero';
 import TablaTransacciones from './components/TablaTransacciones';
 import FiltroTransacciones from './components/FiltroTransacciones';
 import ContabilidadLayout from './ContabilidadLayout';
-import { Box } from '@mui/material';
+import { Box, createTheme } from '@mui/material';
 import HeaderUser from '@/components/headeruser';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { ThemeProviderWrapper } from '@/context/ThemeContext';
+import { ThemeProvider } from '@emotion/react';
 
+
+const theme = createTheme();
 
 const ContabilidadFinanzas: React.FC = () => {
 
 
     return (
+        
+
+
         <ProtectedRoute>
         <ContabilidadLayout>
         <Box sx={{ p: 4 }}>
@@ -32,6 +39,7 @@ const ContabilidadFinanzas: React.FC = () => {
         </Box>
         </ContabilidadLayout>
         </ProtectedRoute>
+       
     );
 };
 
