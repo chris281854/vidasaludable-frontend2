@@ -2,12 +2,31 @@ import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Typography, Snackbar, Alert } from '@mui/material';
 import { AddCircle } from '@mui/icons-material';
 import dayjs from 'dayjs'; // Asegúrate de que dayjs esté instalado
+import { useSession } from 'next-auth/react';
+
+interface Paciente {
+    id: number;
+    nombre: string;
+    apellido: string;
+    sexo: string;
+    ciudad: string;
+    nacimiento: string;
+    email: string;
+}
 
 interface EvaluacionNutricional {
-    id: number;
-    paciente: string;
-    fecha: string;
-    descripcion: string;
+    idEvaluacion: number;
+    paciente: Paciente;
+    fecha: string; // Cambiar a la fecha de registro o la fecha que desees mostrar
+    objetivo: string;
+    motivoConsulta: string;
+    alergias: string;
+    antecedentes: string;
+    medicamentos: string;
+    analiticas: string;
+    tratamientos: string;
+    observaciones: string;
+    // Agrega otros campos según sea necesario
     estado: string; // 'completado', 'facturado', etc.
 }
 
@@ -19,6 +38,8 @@ interface Factura {
 }
 
 const EvaluacionesNutricionales: React.FC = () => {
+    const { data: session } = useSession();
+
     const [evaluaciones, setEvaluaciones] = useState<EvaluacionNutricional[]>([]);
     const [facturas, setFacturas] = useState<Factura[]>([]);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -28,10 +49,21 @@ const EvaluacionesNutricionales: React.FC = () => {
     useEffect(() => {
         const fetchEvaluaciones = async () => {
             try {
-                const response = await fetch('/api/server/evaluaciones-nutricionales');
+                if (!session) {
+                    console.error('No session found');
+                    return;
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/evaluaciones-nutricionales`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.user.token}`,
+                    },
+                });
                 const data: EvaluacionNutricional[] = await response.json();
                 
-                // Aquí ya no filtramos por mes, simplemente asignamos todas las evaluaciones
+                // Asignamos todas las evaluaciones
                 setEvaluaciones(data);
             } catch (error) {
                 console.error('Error fetching evaluaciones:', error);
@@ -39,19 +71,19 @@ const EvaluacionesNutricionales: React.FC = () => {
         };
 
         fetchEvaluaciones();
-    }, []);
+    }, [session]);
 
     const handleConvertToFactura = (evaluacion: EvaluacionNutricional) => {
         // Lógica para convertir la evaluación a factura
         const newFactura: Factura = {
             id: facturas.length + 1, // Simulación de ID
-            evaluacionId: evaluacion.id,
+            evaluacionId: evaluacion.idEvaluacion,
             monto: 100, // Simulación de monto
             fecha: new Date().toISOString(),
         };
 
         setFacturas([...facturas, newFactura]);
-        setSnackbarMessage(`La evaluación de ${evaluacion.paciente} ha sido convertida a factura.`);
+        setSnackbarMessage(`La evaluación de ${evaluacion.paciente.nombre} ${evaluacion.paciente.apellido} ha sido convertida a factura.`);
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
     };
@@ -69,21 +101,23 @@ const EvaluacionesNutricionales: React.FC = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
+                            <TableCell>ID Evaluación</TableCell>
                             <TableCell>Paciente</TableCell>
                             <TableCell>Fecha</TableCell>
-                            <TableCell>Descripción</TableCell>
+                            <TableCell>Objetivo</TableCell>
+                            <TableCell>Motivo de Consulta</TableCell>
                             <TableCell>Estado</TableCell>
                             <TableCell>Acciones</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {evaluaciones.map((evaluacion) => (
-                            <TableRow key={evaluacion.id}>
-                                <TableCell>{evaluacion.id}</TableCell>
-                                <TableCell>{evaluacion.paciente}</TableCell>
+                            <TableRow key={evaluacion.idEvaluacion}>
+                                <TableCell>{evaluacion.idEvaluacion}</TableCell>
+                                <TableCell>{`${evaluacion.paciente.nombre} ${evaluacion.paciente.apellido}`}</TableCell>
                                 <TableCell>{dayjs(evaluacion.fecha).format('DD/MM/YYYY')}</TableCell>
-                                <TableCell>{evaluacion.descripcion}</TableCell>
+                                <TableCell>{evaluacion.objetivo}</TableCell>
+                                <TableCell>{evaluacion.motivoConsulta}</TableCell>
                                 <TableCell>{evaluacion.estado}</TableCell>
                                 <TableCell>
                                     {evaluacion.estado !== 'facturado' ? (

@@ -20,6 +20,7 @@
     "autoprefixer": "^10.4.20",
     "bootstrap": "^5.3.1",
     "chart.js": "^4.4.7",
+    "dayjs": "^1.11.13",
     "framer-motion": "^11.14.4",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",

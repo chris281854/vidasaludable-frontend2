@@ -1,84 +1,271 @@
-import React, { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Typography, Snackbar, Alert } from '@mui/material';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Typography, Snackbar, Alert, Modal, Box, TextField, Select, MenuItem, SnackbarCloseReason } from '@mui/material';
+import { AddCircle } from '@mui/icons-material';
+import dayjs from 'dayjs'; // Asegúrate de que dayjs esté instalado
+import { useSession } from 'next-auth/react';
 
-interface Evaluacion {
+interface Paciente {
     id: number;
-    tipo: string; // 'nutricion' o 'clinico'
-    paciente: string;
-    fecha: string;
-    descripcion: string;
-    estado: string; // 'pendiente', 'completado', etc.
+    rup: string;
+    nombre: string;
+    apellido: string;
+    sexo: string;
+    ciudad: string;
+    nacimiento: string;
+    email: string;
 }
 
-const EvaluacionesTable: React.FC = () => {
-    const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
+interface EvaluacionNutricional {
+    idEvaluacion: number;
+    paciente: Paciente;
+    fecha: string; // Cambiar a la fecha de registro o la fecha que desees mostrar
+    objetivo: string;
+    motivoConsulta: string;
+    alergias: string;
+    antecedentes: string;
+    medicamentos: string;
+    analiticas: string;
+    tratamientos: string;
+    observaciones: string;
+    estado: string; // 'completado', 'facturado', etc.
+    facturado: boolean; // Nuevo campo booleano
+}
+
+interface Factura {
+    id: number;
+    evaluacionId: number;
+    monto: number;
+    fecha: string;
+}
+
+const ConversionCitas: React.FC = () => {
+    const { data: session } = useSession();
+
+    const [evaluaciones, setEvaluaciones] = useState<EvaluacionNutricional[]>([]);
+    const [facturas, setFacturas] = useState<Factura[]>([]);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
+    // Estado para el modal
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedEvaluacion, setSelectedEvaluacion] = useState<EvaluacionNutricional | null>(null);
+    const [rup, setRup] = useState('');
+    const [montoBruto, setMontoBruto] = useState(0);
+    const [itbis, setItbis] = useState(0);
+    const [total, setTotal] = useState(0);
+    const [tipoFactura, setTipoFactura] = useState('AL CONTADO');
+
     useEffect(() => {
-        // Simulación de la carga de datos
         const fetchEvaluaciones = async () => {
-            // Aquí deberías hacer una llamada a tu API para obtener las evaluaciones
-            const data = [
-                { id: 1, tipo: 'nutricion', paciente: 'Juan Pérez', fecha: '2023-10-01', descripcion: 'Evaluación nutricional inicial', estado: 'completado' },
-                { id: 2, tipo: 'clinico', paciente: 'María López', fecha: '2023-10-02', descripcion: 'Consulta médica general', estado: 'completado' },
-                // Agrega más datos según sea necesario
-            ];
-            setEvaluaciones(data);
+            try {
+                if (!session) {
+                    console.error('No session found');
+                    return;
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/evaluaciones-nutricionales`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session?.user?.token || ''}`,
+                    },
+                });
+                const data: EvaluacionNutricional[] = await response.json();
+                
+                // Filtrar evaluaciones del mes actual
+                const currentMonth = dayjs().month();
+                const currentYear = dayjs().year();
+                const filteredEvaluaciones = data.filter(evaluacion => {
+                    const evaluacionDate = dayjs(evaluacion.fecha);
+                    return evaluacionDate.month() === currentMonth && evaluacionDate.year() === currentYear;
+                });
+
+                // Convertir el campo facturado a booleano si es necesario
+                const updatedEvaluaciones = filteredEvaluaciones.map(evaluacion => ({
+                    ...evaluacion,
+                    facturado: Boolean(evaluacion.facturado), // Convertir a booleano
+                }));
+
+                // Asignamos las evaluaciones filtradas
+                setEvaluaciones(updatedEvaluaciones);
+            } catch (error) {
+                console.error('Error fetching evaluaciones:', error);
+            }
         };
 
         fetchEvaluaciones();
-    }, []);
+    }, [session]);
 
-    const handleConvertToFactura = (evaluacion: Evaluacion) => {
-        // Lógica para convertir la evaluación a factura
-        // Aquí puedes hacer una llamada a tu API para crear la factura
-        setSnackbarMessage(`La evaluación de ${evaluacion.paciente} ha sido convertida a factura.`);
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
+    const handleConvertToFactura = (evaluacion: EvaluacionNutricional) => {
+        setSelectedEvaluacion(evaluacion);
+        setRup(evaluacion.paciente.rup); // Asignar el RUP del paciente
+        setModalOpen(true);
     };
 
-    const handleCloseSnackbar = () => {
+    const handleCloseModal = () => {
+        setModalOpen(false);
+        setMontoBruto(0);
+        setItbis(0);
+        setTotal(0);
+        setTipoFactura('AL CONTADO');
+    };
+
+    const handleSubmit = async () => {
+        const newFactura = {
+            rup,
+            conceptoFactura: `Evaluación de ${selectedEvaluacion?.paciente.nombre} ${selectedEvaluacion?.paciente.apellido}`,
+            montoBruto,
+            itbis,
+            total: montoBruto + (montoBruto * (itbis / 100)),
+            tipoFactura,
+            idMedico: 0, // Cambia esto según tu lógica
+            userName: session?.user?.name,
+        };
+    
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/facturacion`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session?.user?.token || ''}`,
+                },
+                body: JSON.stringify(newFactura),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json(); // Captura el mensaje de error
+                console.error('Error al crear la factura:', errorData);
+                throw new Error(errorData.message || 'Error al crear la factura');
+            }
+    
+            // Actualizar el estado de la evaluación a "facturado"
+            const updatedEvaluaciones = evaluaciones.map(evaluacion => {
+                if (evaluacion.idEvaluacion === selectedEvaluacion!.idEvaluacion) {
+                    return { ...evaluacion, estado: 'facturado', facturado: true }; // Cambiar el estado a "facturado"
+                }
+                return evaluacion;
+            });
+    
+            setEvaluaciones(updatedEvaluaciones); // Actualizar el estado local
+            setFacturas([...facturas, { id: facturas.length + 1, evaluacionId: selectedEvaluacion!.idEvaluacion, monto: newFactura.total, fecha: new Date().toISOString() }]);
+            setSnackbarMessage(`Factura creada para ${selectedEvaluacion?.paciente.nombre} ${selectedEvaluacion?.paciente.apellido}.`);
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error:', error);
+            setSnackbarMessage('Error al crear la factura.');
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        }
+    };
+
+    const handleMontoChange = (value: number) => {
+        setMontoBruto(value);
+        setTotal(value + (value * (itbis / 100))); // Calcular total
+    };
+
+    const handleItbisChange = (value: number) => {
+        setItbis(value);
+        setTotal(montoBruto + (montoBruto * (value / 100))); // Calcular total
+    };
+
+    const handleCloseSnackbar = (event: SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
         setSnackbarOpen(false);
     };
 
     return (
         <Paper sx={{ padding: 2 }}>
             <Typography variant="h4" gutterBottom>
-                Registros de Evaluaciones
+                Evaluaciones Nutricionales
             </Typography>
             <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Tipo</TableCell>
+                            <TableCell>ID Evaluación</TableCell>
                             <TableCell>Paciente</TableCell>
                             <TableCell>Fecha</TableCell>
-                            <TableCell>Descripción</TableCell>
+                            <TableCell>Objetivo</TableCell>
+                            <TableCell>Motivo de Consulta</TableCell>
                             <TableCell>Estado</TableCell>
                             <TableCell>Acciones</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {evaluaciones.map((evaluacion) => (
-                            <TableRow key={evaluacion.id}>
-                                <TableCell>{evaluacion.id}</TableCell>
-                                <TableCell>{evaluacion.tipo}</TableCell>
-                                <TableCell>{evaluacion.paciente}</TableCell>
-                                <TableCell>{evaluacion.fecha}</TableCell>
-                                <TableCell>{evaluacion.descripcion}</TableCell>
-                                <TableCell>{evaluacion.estado}</TableCell>
+                        {evaluaciones.filter(evaluacion => !evaluacion.facturado).map((evaluacion) => (
+                            <TableRow key={evaluacion.idEvaluacion}>
+                                <TableCell>{evaluacion.idEvaluacion}</TableCell>
+                                <TableCell>{`${evaluacion.paciente.nombre} ${evaluacion.paciente.apellido}`}</TableCell>
+                                <TableCell>{dayjs(evaluacion.fecha).format('DD/MM/YYYY')}</TableCell>
+                                <TableCell>{evaluacion.objetivo}</TableCell>
+                                <TableCell>{evaluacion.motivoConsulta}</TableCell>
                                 <TableCell>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => handleConvertToFactura(evaluacion)}
-                                    >
-                                        Convertir a Factura
-                                    </Button>
+                                    {evaluacion.facturado ? (
+                                        <Typography variant="body2" sx={{ 
+                                            border: '1px solid green', 
+                                            borderRadius: '20px', 
+                                            padding: '4px 10px', 
+                                            color: 'green', 
+                                            display: 'inline-block' 
+                                        }}>
+                                            Facturado
+                                        </Typography>
+                                    ) : (
+                                        <Typography variant="body2" sx={{ 
+                                            border: '1px solid orange', 
+                                            borderRadius: '20px', 
+                                            padding: '4px 10px', 
+                                            color: 'orange', 
+                                            display: 'inline-block' 
+                                        }}>
+                                            Pendiente de Facturar
+                                        </Typography>
+                                    )}
                                 </TableCell>
+                                <TableCell>
+                                    {!evaluacion.facturado ? (
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => handleConvertToFactura(evaluacion)}
+                                            startIcon={<AddCircle />}
+                                            sx={{ borderRadius: '50%' }} // Botón redondo
+                                        >
+                                            Convertir
+                                        </Button>
+                                    ) : null}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Typography variant="h4" gutterBottom sx={{ marginTop: 4 }}>
+                Facturas Generadas
+            </Typography>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>ID Factura</TableCell>
+                            <TableCell>ID Evaluación</TableCell>
+                            <TableCell>Monto</TableCell>
+                            <TableCell>Fecha</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {facturas.map((factura) => (
+                            <TableRow key={factura.id}>
+                                <TableCell>{factura.id}</TableCell>
+                                <TableCell>{factura.evaluacionId}</TableCell>
+                                <TableCell>${factura.monto}</TableCell>
+                                <TableCell>{dayjs(factura.fecha).format('DD/MM/YYYY')}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -90,8 +277,77 @@ const EvaluacionesTable: React.FC = () => {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+
+            {/* Modal para crear factura */}
+            <Modal open={modalOpen} onClose={handleCloseModal}>
+                <Box sx={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    left: '50%', 
+                    transform: 'translate(-50%, -50%)', 
+                    width: 400, 
+                    bgcolor: 'background.paper', 
+                    boxShadow: 24, 
+                    p: 4,
+                    borderRadius: 2
+                }}>
+                    <Typography variant="h6" gutterBottom>
+                        Crear Factura
+                    </Typography>
+                    <TextField
+                        label="RUP"
+                        value={rup}
+                        fullWidth
+                        margin="dense"
+                        InputProps={{
+                            readOnly: true,
+                        }}
+                    />
+                    <TextField
+                        label="Monto Bruto"
+                        type="number"
+                        value={montoBruto}
+                        onChange={(e) => handleMontoChange(Number(e.target.value))}
+                        fullWidth
+                        margin="dense"
+                    />
+                    <TextField
+                        label="ITBIS (%)"
+                        type="number"
+                        value={itbis}
+                        onChange={(e) => handleItbisChange(Number(e.target.value))}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Total"
+                        value={total}
+                        fullWidth
+                        margin="normal"
+                        InputProps={{
+                            readOnly: true,
+                        }}
+                    />
+                    <Select
+                        value={tipoFactura}
+                        onChange={(e) => setTipoFactura(e.target.value)}
+                        fullWidth
+                    >
+                        <MenuItem value="AL CONTADO">AL CONTADO</MenuItem>
+                        <MenuItem value="A CREDITO">A CREDITO</MenuItem>
+                    </Select>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        onClick={handleSubmit} 
+                        sx={{ marginTop: 2 }}
+                    >
+                        Registrar Factura
+                    </Button>
+                </Box>
+            </Modal>
         </Paper>
     );
 };
 
-export default EvaluacionesTable;
+export default ConversionCitas;

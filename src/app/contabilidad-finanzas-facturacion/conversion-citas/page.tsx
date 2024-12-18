@@ -11,7 +11,7 @@ const ConversionCitasPage = () => {
         <ContabilidadLayout>
         <div>
         <ConversionCitas/>
-        <EvaluacionesTable/>
+        {/* <EvaluacionesTable/> */}
         </div>
         </ContabilidadLayout>
         </ProtectedRoute>
