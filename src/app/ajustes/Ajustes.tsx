@@ -7,64 +7,33 @@ import { useSession } from 'next-auth/react';
 
 const ModuloAjustes: React.FC = () => {
     const { data: session } = useSession();
-
     const { modoOscuro, toggleModoOscuro } = useTheme(); // Usa el contexto
+
     const [nombreConsultorio, setNombreConsultorio] = useState('');
     const [direccion, setDireccion] = useState('');
     const [telefono, setTelefono] = useState('');
     const [notificaciones, setNotificaciones] = useState(true);
     const [intervaloNotificaciones, setIntervaloNotificaciones] = useState(15); // Intervalo en minutos
     const [idioma, setIdioma] = useState('es'); // Idioma por defecto
-    const [nombreMedico, setNombreMedico] = useState('');
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
     // Sección de usuario
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
+    const [name, setName] = useState(session?.user?.name || ''); // Inicializa con el nombre de la sesión
+    const [email, setEmail] = useState(session?.user?.email || ''); // Inicializa con el email de la sesión
     const [fotoUsuario, setFotoUsuario] = useState<string | null>(null);
     const [contrasenaVieja, setContrasenaVieja] = useState('');
     const [contrasenaNueva, setContrasenaNueva] = useState('');
     const [contrasenaConfirmar, setContrasenaConfirmar] = useState('');
 
-
-
-    const fetchUserData = async () => {
-        // Asegúrate de que el token esté disponible
-        if (!session) {
-        
-        }
-    
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.user?.token || ''}`,
-                },
-            });
-    
-            if (!response.ok) {
-                throw new Error('Error al obtener la información del usuario');
-            }
-    
-            const data = await response.json();
-            
-            setName(data.name);
-            setEmail(data.email);
-            setFotoUsuario(data.foto || null);
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            setSnackbarMessage('Error al cargar la información del usuario.');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-        }
-    };
-    
     useEffect(() => {
-        fetchUserData(); // Llama a la función para obtener la información del usuario al montar el componente
-    }, []);
+        // Si la sesión cambia, actualiza los campos de nombre y email
+        if (session) {
+            setName(session.user.name);
+            
+        }
+    }, [session]);
 
     const handleSave = () => {
         setSnackbarMessage('Configuraciones guardadas con éxito.');
@@ -118,7 +87,7 @@ const ModuloAjustes: React.FC = () => {
             <TextField
                 label="Nombre de Usuario"
                 value={name}
-                onChange={(e) => setName(e.target.value)} // Permitir cambios en el estado, pero no se reflejará en el input
+                onChange={(e) => setName(e.target.value)} // Permitir cambios en el estado
                 fullWidth
                 margin="normal"
                 disabled // Deshabilitar el campo

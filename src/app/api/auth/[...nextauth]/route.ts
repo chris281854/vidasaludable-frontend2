@@ -1,9 +1,10 @@
-import NextAuth, { User } from "next-auth";
+import NextAuth, { DefaultUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-interface ExtendedUser extends User {
+interface ExtendedUser extends DefaultUser {
   role: string;
   token: string; // Asegúrate de incluir el token aquí si lo necesitas
+  email: string;
 }
 
 const handler = NextAuth({
@@ -38,6 +39,7 @@ const handler = NextAuth({
           name: user.name,
           role: user.role,
           token: user.token, // Asumiendo que tu API devuelve este token
+          email: user.email,
         } as ExtendedUser;
       },
     }),
@@ -48,12 +50,14 @@ const handler = NextAuth({
       if (user) {
         token.role = (user as ExtendedUser).role;
         token.accessToken = (user as ExtendedUser).token;
+        token.email = (user as ExtendedUser).email;
       }
       return token;
     },
     async session({ session, token }) {
       session.user.role = token.role as string;
       session.user.token = token.accessToken as string; // Pasa el token a la sesión
+      session.user.email = token.email as string;
       return session;
     },
   },
