@@ -7,8 +7,10 @@ import MenuItem from '../../app/dashboard/components/MenuItem';
 import PatientGoalTracker from '../../app/dashboard/components/PatientGoalTracker';
 import BMICalculator from '../../app/dashboard/components/BMICalculator';
 import FollowUpReminders from '../../app/dashboard/components/FollowUpReminders';
+import { useSession } from 'next-auth/react';
 
 const NutritionMenu: React.FC = () => {
+  const { data: session, status } = useSession(); // Obtén la sesión y su estado
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -19,11 +21,11 @@ const NutritionMenu: React.FC = () => {
 
 
   const user = {
-    name: "Dr. María García",
-    role: "Nutricionista Senior",
+    name: session?.user?.name || "Usuario provisional",
+    role: session?.user?.role || "Invitado",
     avatar: "/c.jpg",
-    email: "maria.garcia@nutricion.com",
-    lastLogin: "2023-05-18 09:30",
+    email: session?.user?.email || "test@mail.com",
+    lastLogin: "Viernes 20 de diciembre de 2024",
     patientsToday: 8,
     nextAppointment: { time: "14:30", patient: "Juan Pérez" }
   };
@@ -102,10 +104,10 @@ const NutritionMenu: React.FC = () => {
                 </span>
               )}
             </button>
-            <Image src={user.avatar} alt="Avatar" width={40} height={40} className="rounded-full" />
+            <Image src='/c.png' alt="Avatar" width={40} height={40} className="rounded-full" />
             <div>
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm">{user.role}</p>
+              <p className="font-semibold">{session?.user.name}</p>
+              <p className="text-sm">{session?.user.role}</p>
             </div>
           </div>
         </div>
@@ -124,12 +126,12 @@ const NutritionMenu: React.FC = () => {
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
           <div className="flex items-center mb-4">
-            <Image src={user.avatar} alt="Avatar" width={80} height={80} className="rounded-full mr-4" />
+            <Image src="/c.png" alt="Avatar" width={80} height={80} className="rounded-full mr-4" />
             <div>
               <h2 className="text-2xl font-bold text-gray-800">{user.name}</h2>
-              <p className="text-gray-600">{user.role}</p>
-              <p className="text-gray-600">{user.email}</p>
-              <p className="text-sm text-gray-500">Último acceso: {user.lastLogin}</p>
+              <p className="text-green-600">{user.role}</p>
+              <p className="text-green-600">{user.email}</p>
+              <p className="text-sm text-green-500">Último acceso: {user.lastLogin}</p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
