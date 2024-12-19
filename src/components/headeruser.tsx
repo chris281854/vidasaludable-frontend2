@@ -10,6 +10,7 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ title }) => {
   const { data: session } = useSession();
   const username = session?.user.name || 'Invitado';
   const role = session?.user.role || 'Usuario';
+  const email = session?.user.email || 'Usuario@mail.com';
 
   // Obtener la fecha y hora actuales
   const dateTime = new Date().toLocaleString();
@@ -27,8 +28,9 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ title }) => {
         </div>
         <div className="flex flex-col">
           <span className="text-black font-extrabold text-lg">Bienvenido:</span>
-          <span className="text-sm text-black font-extrabold">{username}</span>
-          <span className="text-sm text-black font-extrabold">{role}</span>
+          <span className="text-sm text-black font-extrabold">Usuario:  {username}</span>
+          <span className="text-sm text-black font-extrabold">Su rol:  {role}</span>
+          <span className="text-sm text-black font-extrabold">{email}</span>
       {/* <span className="text-sm text-black font-extrabold">{dateTime}</span> */}
         {/* Título dinámico */}
          

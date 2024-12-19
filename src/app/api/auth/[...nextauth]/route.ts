@@ -5,6 +5,7 @@ interface ExtendedUser extends DefaultUser {
   role: string;
   token: string; // Asegúrate de incluir el token aquí si lo necesitas
   email: string;
+  
 }
 
 const handler = NextAuth({
@@ -36,6 +37,7 @@ const handler = NextAuth({
 
         // Asegúrate de retornar el token y otros campos necesarios
         return {
+          id: user.id,
           name: user.name,
           role: user.role,
           token: user.token, // Asumiendo que tu API devuelve este token
@@ -48,6 +50,7 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = (user as ExtendedUser).id;
         token.role = (user as ExtendedUser).role;
         token.accessToken = (user as ExtendedUser).token;
         token.email = (user as ExtendedUser).email;
@@ -55,6 +58,7 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
+      session.user.id = token.id as number;
       session.user.role = token.role as string;
       session.user.token = token.accessToken as string; // Pasa el token a la sesión
       session.user.email = token.email as string;
