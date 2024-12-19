@@ -15,12 +15,18 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props,
 const MyCalendar = () => {
   const { data: session } = useSession();
 
+  interface Patient {
+    nombre: string;
+    apellido: string;
+  }
+
   interface Appointment {
     id: string;
     rup: string;
-    title: string; // Este campo se usará para el RUP
+    title: string;
     start: string;
     estado: string;
+    paciente: Patient;
   }
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -34,13 +40,10 @@ const MyCalendar = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
-
-  // Estado para el modal
   const [modalOpen, setModalOpen] = useState(false);
+  const [appointmentsForDate, setAppointmentsForDate] = useState<Appointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [appointmentsForDate, setAppointmentsForDate] = useState<Appointment[]>([]); // Para almacenar citas de la fecha seleccionada
 
-  // Función para obtener citas desde la API
   const fetchAppointments = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cita-pac`, {
@@ -54,19 +57,25 @@ const MyCalendar = () => {
       if (!response.ok) throw new Error('Error al obtener los datos');
 
       const data = await response.json();
+      console.log('Datos de la API:', data);
 
       const formattedAppointments = data.map((appointment: {
-          estado: string; id: number; patient: string; fechaCita: string; horaCita: string; rup: string 
+        estado: string; id: number; fechaCita: string; horaCita: string; rup: string; paciente?: { nombre: string; apellido: string }
       }) => ({
         id: appointment.id.toString(),
-        title: appointment.rup, // Cambiar a RUP
-        start: `${appointment.fechaCita}T${appointment.horaCita}`, // Combinar fecha y hora
+        rup: appointment.rup,
+        start: `${appointment.fechaCita}T${appointment.horaCita}`,
         estado: appointment.estado,
-        rup: appointment.rup, // Asegúrate de que 'rup' esté presente en la respuesta
+        paciente: appointment.paciente || { nombre: 'Desconocido', apellido: '' },
+        title: `${appointment.paciente?.nombre || 'Desconocido'} (${appointment.rup})`,
       }));
+
       setAppointments(formattedAppointments);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      setSnackbarMessage('Error al cargar las citas');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
@@ -79,12 +88,37 @@ const MyCalendar = () => {
     setNewAppointment((prev) => ({ ...prev, [name]: value }));
   };
 
-  const deleteAppointment = (id: string) => {
-    setAppointments((prev) => prev.filter((appointment) => appointment.id !== id));
+  const deleteAppointment = async (id: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/cita-pac/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.user?.token || ''}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setSnackbarMessage(`Error al eliminar la cita: ${errorData.message}`);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        return;
+      }
+
+      setAppointments((prev) => prev.filter((appointment) => appointment.id !== id));
+      setSnackbarMessage('Cita eliminada con éxito');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      setSnackbarMessage('Error al eliminar la cita');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
   };
 
   const addAppointment = async () => {
-    // Validación de campos requeridos
     if (!newAppointment.title) {
       setSnackbarMessage('Por favor, completa el nombre del paciente.');
       setSnackbarSeverity('error');
@@ -106,8 +140,7 @@ const MyCalendar = () => {
       return;
     }
 
-    // Combinar la fecha y la hora en un formato ISO 8601
-    const formattedDateTime = `${newAppointment.date}T${newAppointment.time}:00`; // Formato YYYY-MM-DDTHH:mm:ss
+    const formattedDateTime = `${newAppointment.date}T${newAppointment.time}:00`;
 
     const newEvent = {
       rup: newAppointment.rup,
@@ -140,10 +173,11 @@ const MyCalendar = () => {
         ...prev,
         {
           id: savedAppointment.id.toString(),
-          title: newAppointment.rup, // Guardar el RUP ingresado
+          rup: newAppointment.rup,
           start: formattedDateTime,
           estado: savedAppointment.estado,
-          rup: newAppointment.rup,
+          paciente: { nombre: newAppointment.title, apellido: '' },
+          title: `${newAppointment.title} (${newAppointment.rup})`,
         } as Appointment,
       ]);
 
@@ -176,12 +210,12 @@ const MyCalendar = () => {
   };
 
   const handleDateClick = (info: any) => {
-    const clickedDate = info.dateStr; // Obtener la fecha clickeada
-    const appointmentsOnDate = appointments.filter((appt) => appt.start.startsWith(clickedDate)); // Filtrar citas por fecha
+    const clickedDate = info.dateStr;
+    const appointmentsOnDate = appointments.filter((appt) => appt.start.startsWith(clickedDate));
 
     if (appointmentsOnDate.length > 0) {
-      setAppointmentsForDate(appointmentsOnDate); // Establecer citas para la fecha seleccionada
-      setModalOpen(true); // Abrir el modal
+      setAppointmentsForDate(appointmentsOnDate);
+      setModalOpen(true);
     } else {
       setSnackbarMessage('No hay citas programadas para esta fecha.');
       setSnackbarSeverity('info');
@@ -192,7 +226,7 @@ const MyCalendar = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedAppointment(null);
-    setAppointmentsForDate([]); // Limpiar citas para la fecha seleccionada
+    setAppointmentsForDate([]);
   };
 
   return (
@@ -262,7 +296,7 @@ const MyCalendar = () => {
                 <div className="flex justify-between">
                   <div>
                     <Typography variant="body1" style={{ color: '#2e7d32' }}>{appointment.rup}</Typography>
-                    <Typography variant="body1" style={{ color: '#2e7d32' }}>{appointment.title}</Typography>
+                    <Typography variant="body1" style={{ color: '#2e7d32' }}>{appointment.paciente.nombre} {appointment.paciente.apellido}</Typography>
                     <Typography variant="body2" style={{ color: '#2e7d32' }}>Fecha: {appointment.start.split('T')[0]}</Typography>
                     <Typography variant="body2" style={{ color: '#2e7d32' }}>Hora: {appointment.start.split('T')[1]}</Typography>
                     <Typography variant="body2" style={{ color: '#2e7d32' }}>Estado: {appointment.estado}</Typography>
@@ -280,7 +314,8 @@ const MyCalendar = () => {
           )}
         </div>
       </Paper>
-      <div> 
+
+      <div className="bg-green-700"> 
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -290,34 +325,42 @@ const MyCalendar = () => {
             right: 'dayGridMonth,timeGridWeek,timeGridDay',
           }}
           events={appointments}
-          eventClick={handleEventClick} // Manejar clic en el evento
-          dateClick={handleDateClick} // Manejar clic en el día
+          eventClick={handleEventClick}
+          dateClick={handleDateClick}
+          eventContent={(eventInfo) => {
+            const appointment = appointments.find(app => app.id === eventInfo.event.id);
+            return (
+              <div className="p-1 text-xs">
+                <div><strong>RUP:</strong> {appointment?.rup}</div>
+                <div><strong>Paciente:</strong> {appointment?.paciente.nombre}</div>
+                <div><strong>Hora:</strong> {eventInfo.event.start?.toLocaleTimeString()}</div>
+                <div><strong>Estado:</strong> {appointment?.estado}</div>
+              </div>
+            );
+          }}
+          eventDisplay="block"
+          dayMaxEvents={3}
+          moreLinkText="más"
+          moreLinkClick="popover"
         />
-      
+      </div>
 
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
           {snackbarMessage}
         </Alert>
       </Snackbar>
 
-      {/* Modal para mostrar detalles de las citas en la fecha seleccionada */}
       <Modal open={modalOpen} onClose={handleCloseModal}>
         <Paper style={{ padding: '20px', margin: '100px auto', maxWidth: '400px' }}>
-          <Typography variant="h6" style={{ color: '#2e7d32' }}>Citas para la Fecha Seleccionada</Typography>
-          {appointmentsForDate.length > 0 ? (
-            appointmentsForDate.map((appointment) => (
-              <div key={appointment.id}>
-                <Typography variant="body1">RUP: {appointment.rup}</Typography>
-                <Typography variant="body1">Nombre: {appointment.title}</Typography>
-                <Typography variant="body1">Fecha: {appointment.start.split('T')[0]}</Typography>
-                <Typography variant="body1">Hora: {appointment.start.split('T')[1]}</Typography>
-                <hr />
-              </div>
-            ))
-          ) : (
-            <Typography variant="body1">No hay citas programadas para esta fecha.</Typography>
+          <Typography variant="h6" style={{ color: '#2e7d32' }}>Detalles de la Cita</Typography>
+          {selectedAppointment && (
+            <>
+              <Typography variant="body1">RUP: {selectedAppointment.rup}</Typography>
+              <Typography variant="body1">Nombre: {selectedAppointment.paciente.nombre} {selectedAppointment.paciente.apellido}</Typography>
+              <Typography variant="body1">Fecha: {selectedAppointment.start.split('T')[0]}</Typography>
+              <Typography variant="body1">Hora: {selectedAppointment.start.split('T')[1]}</Typography>
+            </>
           )}
           <Button onClick={handleCloseModal} variant="contained" style={{ backgroundColor: '#4caf50', color: 'white', marginTop: '10px' }}>
             Cerrar
