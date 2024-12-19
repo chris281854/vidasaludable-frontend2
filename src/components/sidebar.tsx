@@ -14,6 +14,7 @@ import { SiTestcafe } from "react-icons/si";
 import { BsFileEarmarkMedicalFill } from "react-icons/bs";
 import { ImHome2 } from "react-icons/im";
 import { FaMoneyBillTrendUp } from "react-icons/fa6";
+import { IoCalendarNumberSharp } from "react-icons/io5";
 
 interface SidebarItemProps {
   icon: IconType;
@@ -262,6 +263,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           href="/contabilidad-finanzas-facturacion"
           expanded={expanded}
           subItems={ContabilidadSubItems}
+          activeSubmenu={activeSubmenu}
+          setActiveSubmenu={setActiveSubmenu}
+          />
+
+        <SidebarItem
+          icon={IoCalendarNumberSharp}
+          label="Gestion de Citas"
+          href="/calendario"
+          expanded={expanded}
+         // subItems={ContabilidadSubItems}
           activeSubmenu={activeSubmenu}
           setActiveSubmenu={setActiveSubmenu}
           />

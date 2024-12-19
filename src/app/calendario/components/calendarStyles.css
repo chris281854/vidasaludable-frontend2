@@ -1,0 +1,29 @@
+/* Estilos personalizados para FullCalendar */
+
+/* Estilo general del calendario */
+.fc {
+  background-color: #e8f5e9; /* Color de fondo del calendario */
+}
+
+.fc-toolbar {
+  background-color: #c8e6c9; /* Color de fondo de la barra de herramientas */
+  color: #2e7d32; /* Color del texto de la barra de herramientas */
+}
+
+.fc-daygrid-day {
+  background-color: #e8f5e9; /* Color de fondo de los días */
+}
+
+.fc-daygrid-day:hover {
+  background-color: #c8e6c9; /* Color de fondo al pasar el mouse sobre los días */
+}
+
+.fc-daygrid-event {
+  background-color: #81c784; /* Color de fondo de los eventos */
+  border: none; /* Sin borde */
+  color: white; /* Color del texto de los eventos */
+}
+
+.fc-daygrid-event:hover {
+  background-color: #66bb6a; /* Color de fondo al pasar el mouse sobre los eventos */
+}

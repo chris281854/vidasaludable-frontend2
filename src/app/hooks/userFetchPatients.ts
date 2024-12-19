@@ -12,7 +12,7 @@ const useFetchPatients = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      console.log('Token de sesión:', session?.user?.token); // Verifica el token
+      //console.log('Token de sesión:', session?.user?.token); // Verifica el token
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/vidasaludable`, {
         method: 'GET',
         headers: {
