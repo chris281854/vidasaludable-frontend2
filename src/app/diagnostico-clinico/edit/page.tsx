@@ -31,6 +31,7 @@ import {
   DialogActions,
   InputAdornment
 } from "@mui/material";
+import Patient from "../components/PatientRightBar"; // Ensure the Patient interface is imported from a single source
 import SearchIcon from '@mui/icons-material/Search';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -40,29 +41,29 @@ import { format } from 'date-fns';
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DiagnosticoClinicoLayout from "../DiagnosticoClinicoLayout";
 
-interface DetallePaciente {
-  objetivo: string;
-  motivo: string;
-}
+// interface DetallePaciente {
+//   objetivo: string;
+//   motivo: string;
+// }
 
-interface Patient {
-  rup: string;
-  nombre: string;
-  apellido: string;
-  sexo: string;
-  ciudad: string;
-  nacimiento: string;
-  registro: string;
-  email: string;
-  detallepaciente?: DetallePaciente[]; // Make this optional to match the expected type
-  fotoUrl?: string;
-  rupPaciente?: string;
-  nombrePaciente?: string;
-  apellidoPaciente?: string;
-  ciudadPaciente?: string;
-  fechaRegistro?: string;
-  objetivoConsulta?: string;
-}
+// interface Patient {
+//   rup: string;
+//   nombre: string;
+//   apellido: string;
+//   sexo: string;
+//   ciudad: string;
+//   nacimiento: string;
+//   registro: string;
+//   email: string;
+//   detallepaciente?: DetallePaciente[]; // Make this optional to match the expected type
+//   fotoUrl?: string;
+//   rupPaciente?: string;
+//   nombrePaciente?: string;
+//   apellidoPaciente?: string;
+//   ciudadPaciente?: string;
+//   fechaRegistro?: string;
+//   objetivoConsulta?: string;
+// }
 
 interface FormData {
   diagnosticoId: string;
@@ -587,6 +588,21 @@ const handleEditar = async () => {
                     </Alert>
                 )}
             </Box>
+
+
+                    <Box display="flex" alignItems="center">
+                <DiagnosticoSearchField 
+                    diagnosticoId={diagnosticoId} 
+                    onChange={(value: string) => setDiagnosticoId(value)} 
+                    onSearch={handleBuscarDiagnostico}
+                    disabled={loading}
+                />
+                {error && (
+                    <Alert severity="error" sx={{ marginLeft: 2 }}>
+                        {error}
+                    </Alert>
+                )}
+            </Box>
           <div className="grid grid-cols-12 gap-8">
             {/* Columna principal - Lado izquierdo */}
             <div className="col-span-8">
@@ -835,6 +851,41 @@ const handleEditar = async () => {
             </div>
           </div>
 
+          <div className="col-span-4">
+            <PatientRightBar
+             patientData={{
+              nombre: formData.nombrePaciente,
+              apellido: formData.apellidoPaciente,
+              rup: formData.rupPaciente,
+              ciudad: formData.ciudadPaciente,
+              registro: formData.fechaRegistro,
+              objetivo: formData.objetivoConsulta,
+             }}
+             disabled={formData.firmaDigital}
+             onRupChange={(rup: string) => {
+              setFormData(prev=> ({
+                ...prev, 
+                rupPaciente: rup}));
+              }}
+              
+              onPatientSelect={(patient: Patient) => {
+                setFormData(prev => ({
+                  ...prev,
+                  nombrePaciente: patient.nombre,
+                  apellidoPaciente: patient.apellido,
+                  rupPaciente: patient.rup,
+                  fechaRegistro: patient.registro 
+                    ? new Date(patient.registro).toISOString().split('T')[0]  // Convertir a string YYYY-MM-DD
+                    : null,
+                  ciudadPaciente: patient.ciudad,
+                  objetivoConsulta: patient.objetivoConsulta || 'No especificado'
+                }));
+              }}
+            />
+          </div>
+        </div>
+        
+          
           {/* Diálogos */}
           <ConfirmacionFirmaDialog
             open={showConfirmDialog}
@@ -940,7 +991,7 @@ const handleEditar = async () => {
         </div>
       </div>
     </div>
-  </div>
+  
     </DiagnosticoClinicoLayout>
     </ProtectedRoute>
   );

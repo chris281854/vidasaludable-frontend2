@@ -30,11 +30,11 @@ import { useSession } from 'next-auth/react';
 
 interface Patient {
     fotoUrl: string;
-    rupPaciente: unknown;
-    nombrePaciente: unknown;
-    apellidoPaciente: unknown;
-    ciudadPaciente: unknown;
-    fechaRegistro: any;
+    // rupPaciente: unknown;
+    // nombrePaciente: unknown;
+    // apellidoPaciente: unknown;
+    // ciudadPaciente: unknown;
+    // fechaRegistro: any;
     objetivoConsulta: unknown;
     rup: string;
     nombre: string;
@@ -44,10 +44,7 @@ interface Patient {
     nacimiento: string;
     registro: string;
     email: string;
-    detallepaciente: Array<{
-      objetivo: string;
-      motivo: string;
-    }>
+    detallepaciente: DetallePaciente[];
   }
 
   interface DetallePaciente {
@@ -232,7 +229,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="RUP"
-            value={patientData.rupPaciente}
+            value={patientData.rup}
             onChange={(e) => onRupChange(e.target.value)}
             disabled={disabled} // Añadimos esta línea
             InputProps={{
@@ -258,7 +255,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Nombre"
-            value={patientData.nombrePaciente}
+            value={patientData.nombre}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -277,7 +274,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Apellido"
-            value={patientData.apellidoPaciente}
+            value={patientData.apellido}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -296,7 +293,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Ciudad"
-            value={patientData.ciudadPaciente}
+            value={patientData.ciudad}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -315,7 +312,7 @@ const PatientRightBar: React.FC<PatientRightBarProps> = ({
           <TextField
             fullWidth
             label="Fecha de Registro"
-            value={patientData.fechaRegistro ? new Date(patientData.fechaRegistro).toLocaleDateString() : ''}
+            value={patientData.registro ? new Date(patientData.registro).toLocaleDateString() : ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

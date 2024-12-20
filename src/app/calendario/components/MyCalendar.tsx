@@ -57,7 +57,6 @@ const MyCalendar = () => {
       if (!response.ok) throw new Error('Error al obtener los datos');
 
       const data = await response.json();
-    //  console.log('Datos de la API:', data);
 
       const formattedAppointments = data.map((appointment: {
         estado: string; id: number; fechaCita: string; horaCita: string; rup: string; paciente?: { nombre: string; apellido: string }
@@ -261,7 +260,10 @@ const MyCalendar = () => {
             onChange={handleInputChange}
             type="date"
             className="bg-white"
-            InputProps={{ style: { color: '#2e7d32' } }}
+            InputProps={{ 
+              style: { color: '#2e7d32' },
+              inputProps: { min: new Date().toISOString().split("T")[0] } // Establecer la fecha mínima como hoy
+            }}
             InputLabelProps={{ style: { color: '#2e7d32' } }}
           />
           <TextField
