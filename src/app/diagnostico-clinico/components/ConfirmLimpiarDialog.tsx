@@ -17,6 +17,7 @@ interface ConfirmLimpiarDialogProps {
   title?: string;
   message?: string;
   submessage?: string;
+  disable?: boolean;
 }
 
 const ConfirmLimpiarDialog: React.FC<ConfirmLimpiarDialogProps> = ({

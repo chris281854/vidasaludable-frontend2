@@ -1,13 +1,17 @@
  'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItem from '../../app/dashboard/components/MenuItem';
 import PatientGoalTracker from '../../app/dashboard/components/PatientGoalTracker';
 import BMICalculator from '../../app/dashboard/components/BMICalculator';
 import FollowUpReminders from '../../app/dashboard/components/FollowUpReminders';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AjustesLayout from '../ajustes/AjustesLayout';
+ 
 
 const NutritionMenu: React.FC = () => {
   const { data: session, status } = useSession(); // Obtén la sesión y su estado
@@ -18,15 +22,28 @@ const NutritionMenu: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [todayAppointments, setTodayAppointments] = useState(0);
+  const router = useRouter();
 
 
-  const user = {
+  const handleLogout = async () => {
+    // Eliminar el token del almacenamiento local
+    localStorage.removeItem('token'); // Cambia 'token' por la clave que estés usando para almacenar el token
+
+    // Cerrar sesión usando next-auth
+    await signOut({ redirect: false });
+
+    // Redirigir al usuario a la página de login
+    router.push('/login');
+};
+
+   const user = {
     name: session?.user?.name || "Usuario provisional",
     role: session?.user?.role || "Invitado",
     avatar: "/c.jpg",
     email: session?.user?.email || "test@mail.com",
     lastLogin: "Viernes 20 de diciembre de 2024",
-    patientsToday: 8,
+    patientsToday: null,
     nextAppointment: { time: "14:30", patient: "Juan Pérez" }
   };
 
@@ -52,26 +69,18 @@ const NutritionMenu: React.FC = () => {
   };
 
  
-     
 
-    // const handleMenuItemClick = (href) => {
-    //     setLoading(true);
-    //     setProgress(0); // Reiniciar el progreso
-
-    //     // Simular carga
-    //     const interval = setInterval(() => {
-    //         setProgress((prev) => {
-    //             if (prev >= 100) {
-    //                 clearInterval(interval);
-    //                 setLoading(false);
-    //                 return 100;
-    //             }
-    //             return prev + 10; // Incrementar el progreso
-    //         });
-    //     }, 100); // Incrementar cada 100ms
-    // };
+    // Efecto para redirigir si no hay sesión
+    useEffect(() => {
+      if (status === 'loading') return; // Espera a que se cargue la sesión
+      if (!session) {
+          router.push('/login'); // Redirige a la página de inicio de sesión si no hay sesión
+      }
+    }, [session, status, router]);
 
   return (
+    <ProtectedRoute>
+            
     <div className="min-h-screen bg-gray-100">
       <header className="bg-[#25aa80] text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
@@ -91,6 +100,7 @@ const NutritionMenu: React.FC = () => {
                 </svg>
               </button>
             </form>
+          
             <button
               onClick={() => setIsNotificationPanelOpen(!isNotificationPanelOpen)}
               className="relative p-2 rounded-full hover:bg-[#1e8f6e] transition duration-300"
@@ -108,9 +118,36 @@ const NutritionMenu: React.FC = () => {
             <div>
               <p className="font-semibold">{session?.user.name}</p>
               <p className="text-sm">{session?.user.role}</p>
+              
+            </div>
+            
+           
+            <div className='flex justify-end items-center'>
+              <button
+                onClick={handleLogout}
+                className="text-white hover:text-gray-200 transition-colors p-2 rounded-full hover:bg-[#1e8f6e]"
+                title="Cerrar sesión"
+              >
+                <svg 
+                  className="w-10 mt-2 h-10" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24" 
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
+         
         </div>
+        
       </header>
       <main className="container mx-auto py-8">
         {isNotificationPanelOpen && (
@@ -134,13 +171,10 @@ const NutritionMenu: React.FC = () => {
               <p className="text-sm text-green-500">Último acceso: {user.lastLogin}</p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="font-semibold">Pacientes atendidos hoy: {user.patientsToday}</p>
-              <p className="font-semibold">Próxima cita: {user.nextAppointment.time} - {user.nextAppointment.patient}</p>
-            </div>
-            <div className="text-right">
-              <Link href="/agenda" className="bg-[#25aa80] text-white px-4 py-2 rounded-full hover:bg-[#1e8f6e] transition duration-300">
+          <div className="text-gray-800 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+             
+            <div className="flex justify-end ml-40 text-right">
+              <Link href="/calendario" className="bg-[#25aa80] text-white px-4 py-2 rounded-full hover:bg-[#1e8f6e] transition duration-300">
                 Ver agenda completa
               </Link>
             </div>
@@ -343,6 +377,8 @@ const NutritionMenu: React.FC = () => {
         </div>
       </footer>
     </div>
+    </ProtectedRoute>
+    
   );
 };
 

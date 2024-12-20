@@ -57,7 +57,7 @@ const MyCalendar = () => {
       if (!response.ok) throw new Error('Error al obtener los datos');
 
       const data = await response.json();
-      console.log('Datos de la API:', data);
+    //  console.log('Datos de la API:', data);
 
       const formattedAppointments = data.map((appointment: {
         estado: string; id: number; fechaCita: string; horaCita: string; rup: string; paciente?: { nombre: string; apellido: string }

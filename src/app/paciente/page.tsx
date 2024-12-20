@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import HeaderUser from "../../components/headeruser";
 import Sidebar from "../../components/sidebar";
 import PatientList from "./components/pacienteList";
@@ -8,15 +8,12 @@ import RightBar from "./components/RightBar";
 import { Button } from "@mui/material";
 import FilterInput from "../../components/FilterButon";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PacienteLayout from "./PacienteLayout";
+ 
 
-interface SidebarProps {
-    initialExpanded?: boolean;
-    initialWidth?: string;
-    expandedWidth?: string;
-    onExpand?: (expanded: boolean) => void;
-}
 
 const PacienteDashboard: React.FC = () => {
+    
     const [isExpanded, setIsExpanded] = useState(false);
     const [filterText, setFilterText] = useState('');
 
@@ -28,16 +25,13 @@ const PacienteDashboard: React.FC = () => {
         console.log("Filtro aplicado:", filterText);
     }, [filterText]);
 
+
+   
     return (
         <ProtectedRoute>
-
+            <PacienteLayout>
         <div className="flex h-screen bg-white">
-            <Sidebar 
-                initialExpanded={isExpanded}
-                initialWidth="w-16"
-                expandedWidth="w-40"
-                onExpand={setIsExpanded}
-            />
+            
             <div className="flex-grow overflow-hidden">
                 <HeaderUser title="Consulta General de Paciente" />
                 
@@ -77,6 +71,7 @@ const PacienteDashboard: React.FC = () => {
                 </div>
             </div>
         </div>
+        </PacienteLayout>
         </ProtectedRoute>
 
     );

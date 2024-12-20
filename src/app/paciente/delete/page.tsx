@@ -5,9 +5,11 @@ import RecentPatients from '../components/RightBar';
 import PacienteLayout from '../PacienteLayout';
 import HeaderUser from '../../../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function DeletePatientPage() {
     return (
+      <ProtectedRoute>
       <PacienteLayout>
         <Box sx={{ p: 4 }}>
           <HeaderUser title='Gestion de Pacientes ~ Eliminar Pacientes' />
@@ -32,5 +34,6 @@ export default function DeletePatientPage() {
           </Box>
         </Box>
       </PacienteLayout>
+      </ProtectedRoute>
     );
 }

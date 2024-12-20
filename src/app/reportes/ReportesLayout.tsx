@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Sidebar from '../../components/sidebar';
 
-interface PacienteLayoutProps {
+interface ReportesLayoutProps {
   children: React.ReactNode;
 }
 
-const PacienteLayout: React.FC<PacienteLayoutProps> = ({ children }) => {
+const ReporteLayout: React.FC<ReportesLayoutProps> = ({ children }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -13,7 +13,7 @@ const PacienteLayout: React.FC<PacienteLayoutProps> = ({ children }) => {
       <Sidebar 
         initialExpanded={isExpanded}
         initialWidth="w-14"
-        expandedWidth="w-65"
+        expandedWidth="w-55"
         onExpand={(expanded) => setIsExpanded(expanded)}
       />
       <main className="flex-1 bg-gray-100 min-h-screen ml-16"> {/* Margen izquierdo fijo */}
@@ -23,4 +23,4 @@ const PacienteLayout: React.FC<PacienteLayoutProps> = ({ children }) => {
   );
 };
 
-export default PacienteLayout;
+export default ReporteLayout;

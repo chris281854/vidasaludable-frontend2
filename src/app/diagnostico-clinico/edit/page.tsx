@@ -37,6 +37,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import es from 'date-fns/locale/es';
 import { format } from 'date-fns';
+import ProtectedRoute from "@/components/ProtectedRoute";
+import DiagnosticoClinicoLayout from "../DiagnosticoClinicoLayout";
 
 interface DetallePaciente {
   objetivo: string;
@@ -52,7 +54,14 @@ interface Patient {
   nacimiento: string;
   registro: string;
   email: string;
-  detallePaciente?: DetallePaciente;
+  detallepaciente?: DetallePaciente[]; // Make this optional to match the expected type
+  fotoUrl?: string;
+  rupPaciente?: string;
+  nombrePaciente?: string;
+  apellidoPaciente?: string;
+  ciudadPaciente?: string;
+  fechaRegistro?: string;
+  objetivoConsulta?: string;
 }
 
 interface FormData {
@@ -552,26 +561,14 @@ const handleEditar = async () => {
     showNotification('Formulario limpiado exitosamente', 'success');
     }
 
-  if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <CircularProgress sx={{ color: '#25aa80' }} />
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
+   
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar 
-        initialExpanded={isExpanded}
-        initialWidth="w-16"
-        expandedWidth="w-40"
-        onExpand={setIsExpanded}
-      />
+    <ProtectedRoute>
+    <DiagnosticoClinicoLayout>
+
+    <div className="flex h-screen bg-white">
+       
       
       <div className="flex-grow">
         <HeaderUser title="Diagnóstico Clínico ~ Edición de Registros" />
@@ -608,7 +605,6 @@ const handleEditar = async () => {
                     value={formData.analiticas}
                     onChange={(e) => setFormData({...formData, analiticas: e.target.value})}
                     sx={textFieldStyles}
-                    disabled={formData.firmaDigital}
                   />
                   <TextField
                     fullWidth
@@ -619,7 +615,6 @@ const handleEditar = async () => {
                     value={formData.resultados}
                     onChange={(e) => setFormData({...formData, resultados: e.target.value})}
                     sx={textFieldStyles}
-                    disabled={formData.firmaDigital}
                   />
                 </div>
               </Paper>
@@ -638,7 +633,6 @@ const handleEditar = async () => {
                     value={formData.conclusionMedica}
                     onChange={(e) => setFormData({...formData, conclusionMedica: e.target.value})}
                     sx={textFieldStyles}
-                    disabled={formData.firmaDigital}
                   />
                   <div className="space-y-6">
                     <FormControl component="fieldset" disabled={formData.firmaDigital}>
@@ -836,42 +830,7 @@ const handleEditar = async () => {
                   title="Confirmar Limpieza"
                   message="¿Está seguro que desea limpiar todos los campos del formulario?"
                   submessage="Esta acción no se puede deshacer y todos los datos ingresados se perderán."
-                />
-              </div>
-            </div>
-
-            {/* Columna lateral - Lado derecho */}
-            <div className="col-span-4">
-              <PatientRightBar 
-                patientData={{
-                  fotoUrl: "",
-                  nombrePaciente: formData.nombrePaciente,
-                  apellidoPaciente: formData.apellidoPaciente,
-                  rupPaciente: formData.rupPaciente,
-                  fechaRegistro: formData.fechaRegistro ? new Date(formData.fechaRegistro) : null,
-                  ciudadPaciente: formData.ciudadPaciente,
-                  objetivoConsulta: formData.objetivoConsulta,
-                }} 
-                disabled={formData.firmaDigital}
-                onRupChange={(rup: string) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    rupPaciente: rup
-                  }));
-                }}
-                onPatientSelect={(patient: Patient) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    nombrePaciente: patient.nombre,
-                    apellidoPaciente: patient.apellido,
-                    rupPaciente: patient.rup,
-                    fechaRegistro: patient.registro 
-                      ? new Date(patient.registro).toISOString().split('T')[0]  // Convertir a string YYYY-MM-DD
-                      : null,
-                    ciudadPaciente: patient.ciudad,
-                    objetivoConsulta: patient.detallePaciente?.objetivo || 'No especificado'
-                  }));
-                }}
+                disable={formData.firmaDigital}
               />
             </div>
           </div>
@@ -981,6 +940,9 @@ const handleEditar = async () => {
         </div>
       </div>
     </div>
+  </div>
+    </DiagnosticoClinicoLayout>
+    </ProtectedRoute>
   );
 }
 

@@ -29,7 +29,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useSession } from 'next-auth/react';
 
 interface Patient {
-    fotoUrl: null;
+    fotoUrl: string;
     rupPaciente: unknown;
     nombrePaciente: unknown;
     apellidoPaciente: unknown;
@@ -44,7 +44,10 @@ interface Patient {
     nacimiento: string;
     registro: string;
     email: string;
-    detallepaciente?: DetallePaciente[];
+    detallepaciente: Array<{
+      objetivo: string;
+      motivo: string;
+    }>
   }
 
   interface DetallePaciente {

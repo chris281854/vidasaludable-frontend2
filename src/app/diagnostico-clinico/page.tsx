@@ -7,13 +7,10 @@ import DiagnosticList from "./components/DiagnosticList";
 import RightBar from "./components/RightBar";
 import { Button } from "@mui/material";
 import FilterInput from "../../components/FilterButon";
+import DiagnosticoClinicoLayout from "./DiagnosticoClinicoLayout";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-interface SidebarProps {
-    initialExpanded?: boolean;
-    initialWidth?: string;
-    expandedWidth?: string;
-    onExpand?: (expanded: boolean) => void;
-}
+  
 
 const DiagnosticoClinicoDashboard: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -29,13 +26,10 @@ const DiagnosticoClinicoDashboard: React.FC = () => {
     }, [filterText]);
 
     return (
+        <ProtectedRoute>
+            <DiagnosticoClinicoLayout>
         <div className="flex h-screen bg-white">
-            <Sidebar 
-                initialExpanded={isExpanded}
-                initialWidth="w-16"
-                expandedWidth="w-40"
-                onExpand={setIsExpanded}
-            />
+             
             <div className="flex-grow flex flex-col h-screen overflow-hidden">
                 <HeaderUser title="Diagnósticos Clínicos ~ Dashboard" />
                 
@@ -75,6 +69,9 @@ const DiagnosticoClinicoDashboard: React.FC = () => {
                 </div>
             </div>
         </div>
+        
+        </DiagnosticoClinicoLayout>
+        </ProtectedRoute>
     );
 };
 

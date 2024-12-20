@@ -5,9 +5,17 @@ import RecentPatients from '../../paciente/components/RightBar';
 import PacienteLayout from '../../paciente/PacienteLayout';
 import HeaderUser from '../../../components/headeruser';
 import { Box, Paper, Typography } from '@mui/material';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 
 export default function AddPatientPage() {
-    return (
+    const {data : session}= useSession();
+
+     
+  return (
+    <ProtectedRoute>
       <PacienteLayout>
         <Box sx={{ p: 4 }}>
           <HeaderUser title='Gestion de Pacientes ~ Agregar Nuevo Paciente' />
@@ -32,5 +40,6 @@ export default function AddPatientPage() {
           </Box>
         </Box>
       </PacienteLayout>
+      </ProtectedRoute>
     );
 }
